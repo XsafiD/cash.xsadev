@@ -39,6 +39,12 @@ class TransactionForm(FlaskForm):
     amount = DecimalField(
         "Nominal",
         places=2,
+        render_kw={
+            "type": "text",
+            "inputmode": "numeric",
+            "autocomplete": "off",
+            "data_money": "true",
+        },
         validators=[
             DataRequired(message="Nominal wajib diisi"),
             NumberRange(min=0.01, message="Nominal harus lebih dari 0"),
