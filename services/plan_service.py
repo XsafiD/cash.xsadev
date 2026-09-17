@@ -107,11 +107,22 @@ class PlanService:
         row = self.get_period(user_id, period)
         gross = Decimal(row.gross_income if row else 0)
         needs = self.total_needs(user_id)
+        # Porsi kebutuhan terhadap uang kotor. None bila uang kotor 0
+        # (rasio tak terdefinisi, hindari bagi nol).
+        if gross > 0:
+            ratio = needs / gross * 100
+            needs_ratio = ratio.quantize(Decimal("0.1"))
+            needs_ratio_width = float(min(ratio, Decimal(100)))
+        else:
+            needs_ratio = None
+            needs_ratio_width = 0.0
         return {
             "period": period,
             "gross_income": gross,
             "total_needs": needs,
             "net_income": gross - needs,
+            "needs_ratio": needs_ratio,
+            "needs_ratio_width": needs_ratio_width,
         }
 
     @staticmethod

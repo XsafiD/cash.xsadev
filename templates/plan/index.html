@@ -38,6 +38,26 @@
        tone=("income" if summary.net_income >= 0 else "expense"), icon="fa-sack-dollar") }}
 </div>
 
+{% set over_budget = summary.needs_ratio is not none and summary.needs_ratio > 100 %}
+<div class="mt-4 rounded-xl border border-hairline bg-surface p-5">
+  <div class="flex items-center justify-between gap-3">
+    <p class="text-xs font-medium uppercase tracking-wide text-muted">Porsi Kebutuhan dari Uang Kotor</p>
+    <span class="font-numeric text-sm font-semibold tabular-nums {{ 'text-expense' if over_budget else 'text-primary' }}">
+      {% if summary.needs_ratio is not none %}{{ summary.needs_ratio }}%{% else %}—{% endif %}
+    </span>
+  </div>
+  <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-surface-elevated"
+       role="progressbar" aria-valuemin="0" aria-valuemax="100"
+       aria-valuenow="{{ summary.needs_ratio_width }}"
+       aria-label="Porsi total kebutuhan terhadap uang kotor">
+    <div class="h-full rounded-full transition-all duration-500 {{ 'bg-expense' if over_budget else 'bg-primary' }}"
+         style="width: {{ summary.needs_ratio_width }}%"></div>
+  </div>
+  <p class="mt-2 text-xs text-muted">
+    {{ summary.total_needs | rupiah }} dari {{ summary.gross_income | rupiah }} uang kotor
+  </p>
+</div>
+
 <div class="mt-8 grid gap-6 lg:grid-cols-3">
   <div class="lg:col-span-2">
     <h2 class="mb-3 text-lg font-semibold text-ink">Item Kebutuhan Bulanan</h2>
