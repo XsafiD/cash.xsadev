@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "components/transaction_table.html" import transaction_table %}
+{% block title %}Transaksi · Cash Xsadev{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+  <div>
+    <h1 class="text-2xl font-semibold text-white">Transaksi</h1>
+    <p class="text-sm text-slate-400">Catatan uang masuk, keluar, dan transfer.</p>
+  </div>
+  <a href="{{ url_for('transaction.create') }}"
+     class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-500">
+    + Catat Transaksi
+  </a>
+</div>
+
+<form method="get" class="mb-4 flex flex-wrap items-center gap-2 text-sm">
+  <input type="month" name="month" value="{{ filters.get('month', '') }}"
+         class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-200">
+  <select name="type" class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-200">
+    <option value="">Semua tipe</option>
+    {% for key, label in type_labels.items() %}
+      <option value="{{ key }}" {{ 'selected' if filters.get('type') == key else '' }}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <select name="account_id" class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-200">
+    <option value="">Semua akun</option>
+    {% for account in accounts %}
+      <option value="{{ account.id }}" {{ 'selected' if filters.get('account_id') == account.id else '' }}>
+        {{ account.name }}
+      </option>
+    {% endfor %}
+  </select>
+  <button type="submit"
+          class="rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800">Filter</button>
+  <a href="{{ url_for('transaction.index') }}"
+     class="rounded-lg px-3 py-2 text-slate-400 hover:text-slate-200">Reset</a>
+</form>
+
+{{ transaction_table(transactions, show_delete=true) }}
+{% endblock %}

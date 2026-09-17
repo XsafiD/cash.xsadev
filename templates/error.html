@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ error_code }} · Cash Xsadev{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-md text-center py-24">
+  <p class="text-6xl font-bold text-slate-700">{{ error_code }}</p>
+  <h1 class="mt-4 text-xl font-semibold text-slate-200">{{ error_title }}</h1>
+  <p class="mt-2 text-sm text-slate-400">{{ error_message }}</p>
+  <a href="{{ url_for('dashboard.index') }}"
+     class="mt-6 inline-block rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500">
+    Kembali ke Dashboard
+  </a>
+</div>
+{% endblock %}

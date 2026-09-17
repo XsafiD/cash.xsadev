@@ -1,0 +1,33 @@
+# Docker hanya untuk MySQL di fase development (keputusan rencana migrasi #14).
+# Service aplikasi Flask ditambahkan kembali di fase deployment.
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: cashxsadev-mysql-dev
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpass
+      - MYSQL_DATABASE=cashxsadev
+      - MYSQL_USER=cashxsadev
+      - MYSQL_PASSWORD=secret
+    volumes:
+      - cashxsadev_mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-prootpass",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  cashxsadev_mysql_data:

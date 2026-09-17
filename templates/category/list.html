@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Kategori · Cash Xsadev{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+  <div>
+    <h1 class="text-2xl font-semibold text-white">Kategori</h1>
+    <p class="text-sm text-slate-400">Kelompok pemasukan &amp; pengeluaran.</p>
+  </div>
+  <a href="{{ url_for('category.create') }}"
+     class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-500">
+    + Tambah Kategori
+  </a>
+</div>
+
+<div class="mb-4 flex gap-2 text-sm">
+  <a href="{{ url_for('category.index') }}"
+     class="rounded-lg px-3 py-1.5 {{ 'bg-slate-800 text-white' if not active_kind else 'text-slate-400 hover:text-slate-200' }}">
+    Semua
+  </a>
+  {% for key, label in kind_labels.items() %}
+  <a href="{{ url_for('category.index', kind=key) }}"
+     class="rounded-lg px-3 py-1.5 {{ 'bg-slate-800 text-white' if active_kind == key else 'text-slate-400 hover:text-slate-200' }}">
+    {{ label }}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="overflow-hidden rounded-xl border border-slate-800">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-900 text-left text-xs uppercase tracking-wide text-slate-500">
+      <tr>
+        <th class="px-4 py-3">Nama</th>
+        <th class="px-4 py-3">Jenis</th>
+        <th class="px-4 py-3 text-right">Aksi</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-800">
+      {% for category in categories %}
+      <tr class="hover:bg-slate-900/50">
+        <td class="px-4 py-3 text-slate-200">{{ category.name }}</td>
+        <td class="px-4 py-3">
+          {% if category.kind == "income" %}
+            <span class="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">Pemasukan</span>
+          {% else %}
+            <span class="rounded-full bg-rose-500/10 px-2 py-0.5 text-xs text-rose-300">Pengeluaran</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 text-right">
+          <div class="flex items-center justify-end gap-3">
+            <a href="{{ url_for('category.edit', category_id=category.id) }}"
+               class="text-xs text-slate-400 hover:text-white">Edit</a>
+            <form method="POST" action="{{ url_for('category.delete', category_id=category.id) }}"
+                  onsubmit="return confirm('Hapus kategori ini?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="text-xs text-slate-500 hover:text-red-400">Hapus</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="3" class="px-4 py-10 text-center text-slate-500">Belum ada kategori.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

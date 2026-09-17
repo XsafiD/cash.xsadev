@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Akun · Cash Xsadev{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+  <div>
+    <h1 class="text-2xl font-semibold text-white">Akun</h1>
+    <p class="text-sm text-slate-400">Total saldo {{ total | rupiah }}</p>
+  </div>
+  <a href="{{ url_for('account.create') }}"
+     class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-500">
+    + Tambah Akun
+  </a>
+</div>
+
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  {% for account in accounts %}
+  <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+    <div class="flex items-start justify-between">
+      <div>
+        <p class="font-medium text-white">{{ account.name }}</p>
+        <p class="text-xs text-slate-500">{{ type_labels.get(account.type, account.type) }}</p>
+      </div>
+      <span class="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-400">
+        {{ type_labels.get(account.type, account.type) }}
+      </span>
+    </div>
+    <p class="mt-4 text-xl font-semibold {{ 'text-rose-400' if account.balance < 0 else 'text-slate-100' }}">
+      {{ account.balance | rupiah }}
+    </p>
+    <div class="mt-4 flex items-center gap-3 text-xs">
+      <a href="{{ url_for('account.edit', account_id=account.id) }}"
+         class="text-slate-400 transition hover:text-white">Edit</a>
+      <form method="POST" action="{{ url_for('account.delete', account_id=account.id) }}"
+            onsubmit="return confirm('Hapus akun ini?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="text-slate-500 transition hover:text-red-400">Hapus</button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <div class="rounded-xl border border-dashed border-slate-800 p-8 text-center text-slate-500 sm:col-span-2 lg:col-span-3">
+    Belum ada akun. Tambahkan akun pertamamu untuk mulai mencatat.
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

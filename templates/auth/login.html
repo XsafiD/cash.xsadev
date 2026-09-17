@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "components/form.html" import render_field, submit %}
+{% block title %}Masuk · Cash Xsadev{% endblock %}
+{% block content %}
+<div class="mx-auto mt-16 max-w-sm rounded-2xl border border-slate-800 bg-slate-900/60 p-8">
+  <h1 class="text-xl font-semibold text-white">Cash Xsadev</h1>
+  <p class="mb-6 mt-1 text-sm text-slate-400">Masuk untuk mengelola keuanganmu.</p>
+  <form method="POST" novalidate>
+    {{ form.hidden_tag() }}
+    {{ render_field(form.username, placeholder="owner") }}
+    {{ render_field(form.password, placeholder="••••••••") }}
+    {{ submit("Masuk") }}
+  </form>
+</div>
+{% endblock %}

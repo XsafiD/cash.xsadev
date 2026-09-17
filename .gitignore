@@ -1,0 +1,7 @@
+venv/
+opencode.json
+.env
+__pycache__/
+*.py[cod]
+instance/
+*.db

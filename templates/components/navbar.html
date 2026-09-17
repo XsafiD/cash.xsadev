@@ -1,0 +1,42 @@
+{% set nav = [
+  ("dashboard.index", "Dashboard"),
+  ("transaction.index", "Transaksi"),
+  ("account.index", "Akun"),
+  ("category.index", "Kategori"),
+  ("plan.index", "Perencanaan"),
+] %}
+<nav class="sticky top-0 z-20 border-b border-slate-800 bg-slate-900/80 backdrop-blur">
+  <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+    <div class="flex items-center gap-6">
+      <a href="{{ url_for('dashboard.index') }}" class="font-semibold text-emerald-400">
+        Cash Xsadev
+      </a>
+      <div class="hidden gap-1 text-sm md:flex">
+        {% for endpoint, label in nav %}
+          {% set active = request.endpoint == endpoint %}
+          <a href="{{ url_for(endpoint) }}"
+             class="rounded-lg px-3 py-1.5 transition
+                    {{ 'bg-slate-800 text-white' if active else 'text-slate-400 hover:text-slate-200' }}">
+            {{ label }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="flex items-center gap-3 text-sm">
+      <span class="hidden text-slate-500 sm:inline">{{ session.get('nama') }}</span>
+      <form method="POST" action="{{ url_for('auth.logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="text-slate-400 transition hover:text-red-400">Keluar</button>
+      </form>
+    </div>
+  </div>
+  <div class="flex gap-1 overflow-x-auto px-4 pb-2 text-sm md:hidden">
+    {% for endpoint, label in nav %}
+      <a href="{{ url_for(endpoint) }}"
+         class="whitespace-nowrap rounded-lg px-3 py-1
+                {{ 'bg-slate-800 text-white' if request.endpoint == endpoint else 'text-slate-400' }}">
+        {{ label }}
+      </a>
+    {% endfor %}
+  </div>
+</nav>

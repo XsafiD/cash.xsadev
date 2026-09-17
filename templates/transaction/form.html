@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "components/form.html" import render_field, submit %}
+{% block title %}Catat Transaksi · Cash Xsadev{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-md">
+  <h1 class="text-2xl font-semibold text-white">Catat Transaksi</h1>
+  <form method="POST" class="mt-6 rounded-xl border border-slate-800 bg-slate-900/60 p-6" novalidate>
+    {{ form.hidden_tag() }}
+    {{ render_field(form.type) }}
+    {{ render_field(form.amount, placeholder="50000") }}
+    {{ render_field(form.account_id) }}
+    {{ render_field(form.account_to_id) }}
+    {{ render_field(form.category_id) }}
+    {{ render_field(form.occurred_on) }}
+    {{ render_field(form.note, placeholder="Makan siang (opsional)") }}
+
+    <p class="mb-4 text-xs text-slate-500">
+      Transfer cukup pilih akun asal dan akun tujuan (kategori diabaikan).
+      Pemasukan/pengeluaran wajib pilih kategori yang cocok.
+    </p>
+
+    <div class="flex items-center gap-2">
+      {{ submit("Simpan") }}
+      <a href="{{ url_for('transaction.index') }}"
+         class="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800">
+        Batal
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

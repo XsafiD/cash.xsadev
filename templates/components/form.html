@@ -1,0 +1,25 @@
+{% macro render_field(field, placeholder="") -%}
+  {% set base = "w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100
+                 placeholder-slate-500 focus:border-emerald-500 focus:outline-none
+                 focus:ring-1 focus:ring-emerald-500" %}
+  <div class="mb-4">
+    {{ field.label(class="mb-1 block text-sm font-medium text-slate-300") }}
+    {{ field(class=base + (" border-red-500" if field.errors else ""), placeholder=placeholder) }}
+    {% for error in field.errors %}
+      <p class="mt-1 text-sm text-red-400">{{ error }}</p>
+    {% endfor %}
+  </div>
+{%- endmacro %}
+
+
+{% macro submit(label="Simpan", variant="primary") -%}
+  {% set styles = {
+    "primary": "bg-emerald-600 hover:bg-emerald-500 text-white",
+    "danger": "bg-red-600 hover:bg-red-500 text-white",
+    "ghost": "border border-slate-700 text-slate-300 hover:bg-slate-800",
+  } %}
+  <button type="submit"
+          class="rounded-lg px-4 py-2 text-sm font-medium {{ styles.get(variant, styles['primary']) }}">
+    {{ label }}
+  </button>
+{%- endmacro %}
