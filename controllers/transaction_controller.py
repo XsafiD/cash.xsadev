@@ -83,7 +83,7 @@ class ConfirmForm(FlaskForm):
     pass
 
 
-def _populate_choices(form: TransactionForm, user_id: str) -> list:
+def _populate_choices(form: TransactionForm, user_id: str) -> tuple:
     accounts = _account_service.get_all(user_id)
     account_choices = [
         (a.id, f"{a.name} · {ACCOUNT_TYPE_LABELS.get(a.type, a.type)}")
@@ -96,7 +96,7 @@ def _populate_choices(form: TransactionForm, user_id: str) -> list:
     form.category_id.choices = [("", "—")] + [
         (c.id, f"{c.name} ({KIND_LABELS.get(c.kind, c.kind)})") for c in categories
     ]
-    return categories
+    return account_choices, categories
 
 
 @transaction_bp.route("/")
@@ -146,10 +146,15 @@ def create():
             return redirect(url_for("transaction.index"))
         except ValueError as err:
             flash(str(err), "error")
-    categories = _populate_choices(form, session["user_id"])
+    account_choices, categories = _populate_choices(form, session["user_id"])
+    account_options = [
+        {"value": value, "label": label} for value, label in account_choices
+    ]
     return render_template(
         "transaction/form.html",
         form=form,
+        account_options=account_options,
+        account_to_options=[{"value": "", "label": "—"}] + account_options,
         categories=[
             {"value": c.id, "label": c.name, "kind": c.kind} for c in categories
         ],

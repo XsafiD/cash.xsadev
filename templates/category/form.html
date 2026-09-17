@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "components/form.html" import render_field, submit %}
+{% from "components/form.html" import render_field, submit, styled_select %}
 {% from "components/card.html" import page_header, panel %}
 {% from "components/button.html" import link_button %}
 {% block title %}{{ 'Edit' if mode == 'edit' else 'Tambah' }} Kategori · Cash Xsadev{% endblock %}
@@ -10,7 +10,7 @@
   <form method="POST" novalidate>
     {{ form.hidden_tag() }}
     {{ render_field(form.name, placeholder="Makan & Minum") }}
-    {{ render_field(form.kind) }}
+    {{ styled_select(form.kind, form.kind.choices, placeholder="Pilih jenis") }}
     <div class="flex items-center gap-2">
       {{ submit("Simpan", icon="fa-floppy-disk") }}
       {{ link_button("Batal", url_for('category.index'), variant="secondary") }}

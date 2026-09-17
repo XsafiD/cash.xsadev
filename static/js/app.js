@@ -86,7 +86,7 @@
 
     const fields = Array.from(form.querySelectorAll("[data-type-field]"));
     const accountField = form.querySelector("[data-account-field]");
-    const comboboxes = Array.from(form.querySelectorAll("[data-combobox]"));
+    const categoryCombos = Array.from(form.querySelectorAll("[data-combobox-category]"));
 
     function apply() {
       const type = select.value;
@@ -99,7 +99,10 @@
       // Bersihkan akun tujuan saat bukan transfer agar tidak ikut terkirim.
       if (type !== "transfer") {
         const accountTo = form.querySelector("[name='account_to_id']");
-        if (accountTo) accountTo.value = "";
+        if (accountTo) {
+          accountTo.value = "";
+          accountTo.dispatchEvent(new Event("change", { bubbles: true }));
+        }
       }
 
       if (accountField) {
@@ -112,18 +115,9 @@
         }
       }
 
-      comboboxes.forEach(function (root) {
+      categoryCombos.forEach(function (root) {
         root.setAttribute("data-kind-filter", type === "transfer" ? "" : type);
-        const input = root.querySelector("[data-combobox-input]");
-        const native = root.querySelector("[data-combobox-native]");
-        const menu = root.querySelector("[data-combobox-menu]");
-        if (input) {
-          input.value = "";
-          input.setAttribute("aria-expanded", "false");
-        }
-        if (native) native.value = "";
-        if (menu) menu.classList.add("hidden");
-        root.classList.remove("is-open");
+        root.dispatchEvent(new Event("combobox:reset"));
       });
     }
 
@@ -131,30 +125,51 @@
     apply();
   }
 
-  // ── Combobox: dropdown kategori yang bisa diketik untuk memfilter ──
+  // ── Dropdown custom: combobox (searchable) atau klik-saja ──
   function initCombobox(root) {
     const select = root.querySelector("[data-combobox-native]");
     const control = root.querySelector("[data-combobox-control]");
     const input = root.querySelector("[data-combobox-input]");
+    const trigger = root.querySelector("[data-combobox-trigger]");
+    const labelEl = root.querySelector("[data-combobox-label]");
     const menu = root.querySelector("[data-combobox-menu]");
     const empty = root.querySelector("[data-combobox-empty]");
     const options = Array.from(root.querySelectorAll("[data-combobox-option]"));
-    if (!select || !control || !input || !menu) return;
+    const display = input || trigger;
+    if (!select || !control || !display || !menu) return;
+
+    const searchable = !!input;
+    const placeholder = labelEl ? labelEl.getAttribute("data-placeholder") || "" : "";
 
     select.classList.add("hidden");
     control.classList.remove("hidden");
 
-    const selected = select.options[select.selectedIndex];
-    if (select.value && selected) input.value = selected.textContent.trim();
-
     let activeIndex = -1;
+
+    function selectedOption() {
+      return (
+        options.find(function (opt) {
+          return opt.getAttribute("data-value") === select.value;
+        }) || null
+      );
+    }
+
+    function syncDisplay() {
+      const opt = selectedOption();
+      if (input) {
+        input.value = opt ? opt.textContent.trim() : "";
+      } else if (labelEl) {
+        labelEl.textContent = opt ? opt.textContent.trim() : placeholder;
+        labelEl.classList.toggle("text-muted", !opt);
+      }
+    }
 
     function matches(opt) {
       const kind = root.getAttribute("data-kind-filter") || "";
+      if (kind && opt.getAttribute("data-kind") !== kind) return false;
+      if (!searchable) return true;
       const query = input.value.trim().toLowerCase();
-      const matchKind = !kind || opt.getAttribute("data-kind") === kind;
-      const matchQuery = !query || opt.textContent.toLowerCase().indexOf(query) !== -1;
-      return matchKind && matchQuery;
+      return !query || opt.textContent.toLowerCase().indexOf(query) !== -1;
     }
 
     function applyFilter() {
@@ -184,13 +199,13 @@
       applyFilter();
       menu.classList.remove("hidden");
       root.classList.add("is-open");
-      input.setAttribute("aria-expanded", "true");
+      display.setAttribute("aria-expanded", "true");
     }
 
     function close() {
       menu.classList.add("hidden");
       root.classList.remove("is-open");
-      input.setAttribute("aria-expanded", "false");
+      display.setAttribute("aria-expanded", "false");
     }
 
     function choose(opt) {
@@ -199,18 +214,46 @@
       });
       opt.setAttribute("aria-selected", "true");
       select.value = opt.getAttribute("data-value");
-      input.value = opt.textContent.trim();
+      syncDisplay();
       close();
       select.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
-    input.addEventListener("focus", open);
-    input.addEventListener("input", open);
+    function reset() {
+      select.value = "";
+      syncDisplay();
+      close();
+    }
 
-    input.addEventListener("keydown", function (event) {
+    if (searchable) {
+      input.addEventListener("focus", open);
+      input.addEventListener("input", open);
+      input.addEventListener("blur", function () {
+        window.setTimeout(function () {
+          if (!root.contains(document.activeElement)) close();
+        }, 120);
+      });
+    } else {
+      trigger.addEventListener("click", function () {
+        if (menu.classList.contains("hidden")) open();
+        else close();
+      });
+    }
+
+    display.addEventListener("keydown", function (event) {
       const visibleList = options.filter(function (opt) {
         return !opt.classList.contains("hidden");
       });
+
+      if (
+        !searchable &&
+        menu.classList.contains("hidden") &&
+        (event.key === "Enter" || event.key === " ")
+      ) {
+        event.preventDefault();
+        open();
+        return;
+      }
 
       if (event.key === "ArrowDown") {
         event.preventDefault();
@@ -234,12 +277,6 @@
       }
     });
 
-    input.addEventListener("blur", function () {
-      window.setTimeout(function () {
-        if (!root.contains(document.activeElement)) close();
-      }, 120);
-    });
-
     options.forEach(function (opt) {
       opt.addEventListener("mousedown", function (event) {
         event.preventDefault();
@@ -251,7 +288,10 @@
       if (!root.contains(event.target)) close();
     });
 
-    if (select.form) {
+    select.addEventListener("change", syncDisplay);
+    root.addEventListener("combobox:reset", reset);
+
+    if (searchable && select.form) {
       select.form.addEventListener("submit", function () {
         if (select.value) return;
         const typed = input.value.trim().toLowerCase();
@@ -261,6 +301,8 @@
         if (match) select.value = match.getAttribute("data-value");
       });
     }
+
+    syncDisplay();
   }
 
   function initComboboxes() {
@@ -280,6 +322,8 @@
       const swap = from.value;
       from.value = to.value;
       to.value = swap;
+      from.dispatchEvent(new Event("change", { bubbles: true }));
+      to.dispatchEvent(new Event("change", { bubbles: true }));
     });
   }
 

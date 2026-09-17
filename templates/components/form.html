@@ -23,49 +23,92 @@
 {%- endmacro %}
 
 
-{% macro searchable_select(field, options, placeholder="Cari...", empty_text="Tidak ditemukan") -%}
+{% macro _dropdown(name, field_id, label, options, selected, placeholder, searchable, errors, kind_filter=False, show_label=True) -%}
   {% set base = "w-full rounded-md border bg-canvas px-3 py-2 text-sm text-ink
                  placeholder:text-muted focus:outline-none focus:ring-1" %}
   {% set state = "border-expense focus:border-expense focus:ring-expense"
-                 if field.errors else
+                 if errors else
                  "border-hairline focus:border-primary focus:ring-primary" %}
-  <div data-combobox class="mb-4">
-    <label for="{{ field.id }}-search" class="mb-1.5 block text-sm font-medium text-muted-strong">
-      {{ field.label.text }}
-    </label>
 
-    {# Fallback tanpa JS: select native. JS menyembunyikan ini lalu menampilkan combobox. #}
-    {{ field(class=base + " " + state, **{"data-combobox-native": "true", "aria-label": field.label.text}) }}
+  {# Normalisasi opsi: terima dict {value,label,kind} maupun tuple (value,label). #}
+  {% set items = [] %}
+  {% for option in options %}
+    {% if option is mapping %}
+      {% set _ = items.append(option) %}
+    {% else %}
+      {% set _ = items.append({"value": option[0], "label": option[1]}) %}
+    {% endif %}
+  {% endfor %}
+  {% set matched = items | selectattr("value", "equalto", selected) | list %}
+  {% set selected_label = matched[0].label if matched else placeholder %}
+
+  <div data-combobox {% if kind_filter %}data-combobox-category="true"{% endif %} class="{{ 'mb-4' if show_label else 'relative' }}">
+    {% if show_label %}
+      <label for="{{ field_id }}{{ '-search' if searchable else '' }}"
+             class="mb-1.5 block text-sm font-medium text-muted-strong">{{ label }}</label>
+    {% endif %}
+
+    {# Fallback tanpa JS: select native. JS menyembunyikan ini lalu menampilkan dropdown custom. #}
+    <select name="{{ name }}" id="{{ field_id }}" data-combobox-native="true" aria-label="{{ label }}"
+            class="{{ base }} {{ state }}">
+      {% for item in items %}
+        <option value="{{ item.value }}" {% if item.value == selected %}selected{% endif %}>{{ item.label }}</option>
+      {% endfor %}
+    </select>
 
     <div data-combobox-control class="relative hidden">
-      <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted"
-         aria-hidden="true"></i>
-      <input type="text" id="{{ field.id }}-search" data-combobox-input
-             class="w-full rounded-md border bg-canvas py-2 pl-8 pr-8 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-1 {{ state }}"
-             placeholder="{{ placeholder }}" autocomplete="off" role="combobox"
-             aria-expanded="false" aria-autocomplete="list" aria-haspopup="listbox"
-             aria-controls="{{ field.id }}-list">
-      <i class="fa-solid fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted transition"
-         data-combobox-chevron aria-hidden="true"></i>
+      {% if searchable %}
+        <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted"
+           aria-hidden="true"></i>
+        <input type="text" id="{{ field_id }}-search" data-combobox-input value="{{ selected_label if selected else '' }}"
+               class="w-full rounded-md border bg-canvas py-2 pl-8 pr-8 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-1 {{ state }}"
+               placeholder="{{ placeholder }}" autocomplete="off" role="combobox"
+               aria-expanded="false" aria-autocomplete="list" aria-haspopup="listbox"
+               aria-controls="{{ field_id }}-list">
+        <i class="fa-solid fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted transition"
+           data-combobox-chevron aria-hidden="true"></i>
+      {% else %}
+        <button type="button" data-combobox-trigger aria-label="{{ label }}"
+                class="flex w-full items-center justify-between gap-2 rounded-md border bg-canvas px-3 py-2 text-left text-sm text-ink focus:outline-none focus:ring-1 {{ state }}"
+                aria-haspopup="listbox" aria-expanded="false" aria-controls="{{ field_id }}-list">
+          <span data-combobox-label data-placeholder="{{ placeholder }}" class="truncate {{ 'text-muted' if not selected }}">{{ selected_label }}</span>
+          <i class="fa-solid fa-chevron-down text-xs text-muted transition" data-combobox-chevron aria-hidden="true"></i>
+        </button>
+      {% endif %}
 
       <div data-combobox-menu
            class="absolute z-20 mt-1 hidden w-full overflow-hidden rounded-md border border-hairline bg-surface-elevated shadow-lg">
-        <ul id="{{ field.id }}-list" data-combobox-list role="listbox" class="max-h-56 overflow-auto py-1">
-          {% for option in options %}
-            <li role="option" data-combobox-option data-value="{{ option.value }}" data-kind="{{ option.kind }}"
+        <ul id="{{ field_id }}-list" data-combobox-list role="listbox" class="max-h-56 overflow-auto py-1">
+          {% for item in items %}
+            <li role="option" data-combobox-option data-value="{{ item.value }}" data-kind="{{ item.kind | default('') }}"
                 class="cursor-pointer px-3 py-2 text-sm text-ink transition hover:bg-surface">
-              {{ option.label }}
+              {{ item.label }}
             </li>
           {% endfor %}
         </ul>
-        <p data-combobox-empty class="hidden px-3 py-2 text-sm text-muted">{{ empty_text }}</p>
+        <p data-combobox-empty class="hidden px-3 py-2 text-sm text-muted">Tidak ditemukan</p>
       </div>
     </div>
 
-    {% for error in field.errors %}
+    {% for error in errors %}
       <p class="mt-1 flex items-center gap-1.5 text-xs text-expense">
         <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>{{ error }}
       </p>
     {% endfor %}
   </div>
+{%- endmacro %}
+
+
+{% macro searchable_select(field, options, placeholder="Cari...") -%}
+  {{ _dropdown(field.name, field.id, field.label.text, options, field.data, placeholder, true, field.errors, true) }}
+{%- endmacro %}
+
+
+{% macro styled_select(field, options, placeholder="Pilih...") -%}
+  {{ _dropdown(field.name, field.id, field.label.text, options, field.data, placeholder, false, field.errors) }}
+{%- endmacro %}
+
+
+{% macro filter_dropdown(name, label, options, selected="", placeholder="Pilih...") -%}
+  {{ _dropdown(name, name, label, options, selected, placeholder, false, [], false, false) }}
 {%- endmacro %}

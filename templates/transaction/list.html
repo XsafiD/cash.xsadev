@@ -2,30 +2,31 @@
 {% from "components/transaction_table.html" import transaction_table %}
 {% from "components/card.html" import page_header %}
 {% from "components/button.html" import link_button %}
+{% from "components/form.html" import filter_dropdown %}
 {% block title %}Transaksi · Cash Xsadev{% endblock %}
 {% block content %}
 {% set field_css = "rounded-md border border-hairline bg-surface px-3 py-2 text-sm text-ink
                     focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" %}
+{% set type_options = [{"value": "", "label": "Semua tipe"}] %}
+{% for key, label in type_labels.items() %}
+  {% set _ = type_options.append({"value": key, "label": label}) %}
+{% endfor %}
+{% set account_options = [{"value": "", "label": "Semua akun"}] %}
+{% for account in accounts %}
+  {% set _ = account_options.append({"value": account.id, "label": account.name}) %}
+{% endfor %}
 {% call page_header("Transaksi", "Catatan uang masuk, keluar, dan transfer.") %}
   {{ link_button("Catat Transaksi", url_for('transaction.create'), icon="fa-plus") }}
 {% endcall %}
 
 <form method="get" class="mb-4 flex flex-wrap items-center gap-2 text-sm">
   <input type="month" name="month" value="{{ filters.get('month', '') }}" class="{{ field_css }}">
-  <select name="type" class="{{ field_css }}">
-    <option value="">Semua tipe</option>
-    {% for key, label in type_labels.items() %}
-      <option value="{{ key }}" {{ 'selected' if filters.get('type') == key else '' }}>{{ label }}</option>
-    {% endfor %}
-  </select>
-  <select name="account_id" class="{{ field_css }}">
-    <option value="">Semua akun</option>
-    {% for account in accounts %}
-      <option value="{{ account.id }}" {{ 'selected' if filters.get('account_id') == account.id else '' }}>
-        {{ account.name }}
-      </option>
-    {% endfor %}
-  </select>
+  <div class="w-40">
+    {{ filter_dropdown("type", "Tipe", type_options, filters.get('type', ''), "Semua tipe") }}
+  </div>
+  <div class="w-48">
+    {{ filter_dropdown("account_id", "Akun", account_options, filters.get('account_id', ''), "Semua akun") }}
+  </div>
   <button type="submit"
           class="inline-flex items-center gap-2 rounded-md border border-hairline bg-surface px-3 py-2 text-ink transition hover:bg-surface-elevated">
     <i class="fa-solid fa-filter text-xs" aria-hidden="true"></i>Filter
