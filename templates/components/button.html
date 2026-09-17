@@ -1,0 +1,25 @@
+{% macro _styles(variant) -%}
+  {%- set base = {
+    "primary": "bg-primary text-on-primary hover:bg-primary-active",
+    "secondary": "border border-hairline bg-surface text-ink hover:bg-surface-elevated",
+    "ghost": "text-muted-strong hover:bg-surface hover:text-ink",
+    "danger": "bg-expense text-white hover:opacity-90",
+  } -%}
+  {{ base.get(variant, base["primary"]) }}
+{%- endmacro %}
+
+
+{% macro button(label, variant="primary", type="submit", icon=None, full=False) -%}
+  <button type="{{ type }}"
+          class="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition {{ 'w-full' if full else '' }} {{ _styles(variant) }}">
+    {% if icon %}<i class="fa-solid {{ icon }}" aria-hidden="true"></i>{% endif %}{{ label }}
+  </button>
+{%- endmacro %}
+
+
+{% macro link_button(label, href, variant="primary", icon=None, full=False) -%}
+  <a href="{{ href }}"
+     class="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition {{ 'w-full' if full else '' }} {{ _styles(variant) }}">
+    {% if icon %}<i class="fa-solid {{ icon }}" aria-hidden="true"></i>{% endif %}{{ label }}
+  </a>
+{%- endmacro %}

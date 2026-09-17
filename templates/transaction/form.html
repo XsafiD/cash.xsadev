@@ -1,10 +1,13 @@
 {% extends "base.html" %}
 {% from "components/form.html" import render_field, submit %}
+{% from "components/card.html" import page_header, panel %}
+{% from "components/button.html" import link_button %}
 {% block title %}Catat Transaksi · Cash Xsadev{% endblock %}
 {% block content %}
 <div class="mx-auto max-w-md">
-  <h1 class="text-2xl font-semibold text-white">Catat Transaksi</h1>
-  <form method="POST" class="mt-6 rounded-xl border border-slate-800 bg-slate-900/60 p-6" novalidate>
+  {{ page_header("Catat Transaksi", "Isi detail transaksi di bawah ini.") }}
+  {% call panel() %}
+  <form method="POST" novalidate>
     {{ form.hidden_tag() }}
     {{ render_field(form.type) }}
     {{ render_field(form.amount, placeholder="50000") }}
@@ -14,18 +17,17 @@
     {{ render_field(form.occurred_on) }}
     {{ render_field(form.note, placeholder="Makan siang (opsional)") }}
 
-    <p class="mb-4 text-xs text-slate-500">
-      Transfer cukup pilih akun asal dan akun tujuan (kategori diabaikan).
-      Pemasukan/pengeluaran wajib pilih kategori yang cocok.
+    <p class="mb-4 flex items-start gap-2 rounded-md bg-surface-elevated px-3 py-2 text-xs text-muted-strong">
+      <i class="fa-solid fa-circle-info mt-0.5 text-info" aria-hidden="true"></i>
+      <span>Transfer cukup pilih akun asal dan akun tujuan (kategori diabaikan).
+      Pemasukan/pengeluaran wajib pilih kategori yang cocok.</span>
     </p>
 
     <div class="flex items-center gap-2">
-      {{ submit("Simpan") }}
-      <a href="{{ url_for('transaction.index') }}"
-         class="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800">
-        Batal
-      </a>
+      {{ submit("Simpan", icon="fa-floppy-disk") }}
+      {{ link_button("Batal", url_for('transaction.index'), variant="secondary") }}
     </div>
   </form>
+  {% endcall %}
 </div>
 {% endblock %}

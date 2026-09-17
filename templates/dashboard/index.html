@@ -1,47 +1,31 @@
 {% extends "base.html" %}
 {% from "components/transaction_table.html" import transaction_table %}
+{% from "components/card.html" import page_header, stat_card %}
+{% from "components/button.html" import link_button %}
 {% block title %}Dashboard · Cash Xsadev{% endblock %}
 {% block content %}
-<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-  <div>
-    <h1 class="text-2xl font-semibold text-white">Dashboard</h1>
-    <p class="text-sm text-slate-400">Ringkasan periode {{ month }}</p>
-  </div>
+{% call page_header("Dashboard", "Ringkasan periode " ~ month) %}
   <form method="get" class="flex items-center gap-2">
     <input type="month" name="month" value="{{ month }}"
-           class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200">
+           class="rounded-md border border-hairline bg-surface px-3 py-2 text-sm text-ink focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
     <button type="submit"
-            class="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800">Lihat</button>
+            class="inline-flex items-center gap-2 rounded-md border border-hairline bg-surface px-3 py-2 text-sm text-ink transition hover:bg-surface-elevated">
+      <i class="fa-solid fa-magnifying-glass text-xs" aria-hidden="true"></i>Lihat
+    </button>
   </form>
-</div>
+{% endcall %}
 
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-  <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-    <p class="text-xs uppercase tracking-wide text-slate-500">Total Saldo</p>
-    <p class="mt-2 text-2xl font-semibold text-white">{{ total_balance | rupiah }}</p>
-  </div>
-  <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-    <p class="text-xs uppercase tracking-wide text-slate-500">Pemasukan</p>
-    <p class="mt-2 text-2xl font-semibold text-emerald-400">{{ cashflow.income | rupiah }}</p>
-  </div>
-  <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-    <p class="text-xs uppercase tracking-wide text-slate-500">Pengeluaran</p>
-    <p class="mt-2 text-2xl font-semibold text-rose-400">{{ cashflow.expense | rupiah }}</p>
-  </div>
-  <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-    <p class="text-xs uppercase tracking-wide text-slate-500">Arus Bersih</p>
-    <p class="mt-2 text-2xl font-semibold {{ 'text-emerald-400' if cashflow.net >= 0 else 'text-rose-400' }}">
-      {{ cashflow.net | rupiah }}
-    </p>
-  </div>
+  {{ stat_card("Total Saldo", total_balance | rupiah, tone="primary", icon="fa-wallet") }}
+  {{ stat_card("Pemasukan", cashflow.income | rupiah, tone="income", icon="fa-arrow-down") }}
+  {{ stat_card("Pengeluaran", cashflow.expense | rupiah, tone="expense", icon="fa-arrow-up") }}
+  {{ stat_card("Arus Bersih", cashflow.net | rupiah,
+       tone=("income" if cashflow.net >= 0 else "expense"), icon="fa-scale-balanced") }}
 </div>
 
 <div class="mt-8 flex items-center justify-between">
-  <h2 class="text-lg font-semibold text-white">Transaksi Terbaru</h2>
-  <a href="{{ url_for('transaction.create') }}"
-     class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-500">
-    + Catat Transaksi
-  </a>
+  <h2 class="text-lg font-semibold text-ink">Transaksi Terbaru</h2>
+  {{ link_button("Catat Transaksi", url_for('transaction.create'), icon="fa-plus") }}
 </div>
 <div class="mt-3">
   {{ transaction_table(recent, show_delete=false) }}

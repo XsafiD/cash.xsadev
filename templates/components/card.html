@@ -1,0 +1,47 @@
+{% macro page_header(title, subtitle="") -%}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight text-ink">{{ title }}</h1>
+    {% if subtitle %}<p class="mt-1 text-sm text-muted-strong">{{ subtitle }}</p>{% endif %}
+  </div>
+  {% if caller is defined %}
+    <div class="flex flex-wrap items-center gap-2">{{ caller() }}</div>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+
+{% macro stat_card(label, value, tone="default", icon=None) -%}
+  {%- set tones = {
+    "default": "text-ink",
+    "primary": "text-primary",
+    "income": "text-income",
+    "expense": "text-expense",
+    "muted": "text-muted-strong",
+  } -%}
+  <div class="rounded-xl border border-hairline bg-surface p-5">
+    <div class="flex items-center justify-between">
+      <p class="text-xs font-medium uppercase tracking-wide text-muted">{{ label }}</p>
+      {% if icon %}<i class="fa-solid {{ icon }} text-muted" aria-hidden="true"></i>{% endif %}
+    </div>
+    <p class="mt-2 font-numeric text-2xl font-semibold tabular-nums {{ tones.get(tone, tones['default']) }}">
+      {{ value }}
+    </p>
+  </div>
+{%- endmacro %}
+
+
+{% macro panel(title="") -%}
+<section class="rounded-xl border border-hairline bg-surface p-6">
+  {% if title %}<h2 class="mb-4 text-base font-semibold text-ink">{{ title }}</h2>{% endif %}
+  {{ caller() }}
+</section>
+{%- endmacro %}
+
+
+{% macro empty_state(message, icon="fa-inbox") -%}
+<div class="rounded-xl border border-dashed border-hairline p-8 text-center text-muted-strong">
+  <i class="fa-solid {{ icon }} mb-2 text-lg" aria-hidden="true"></i>
+  <p class="text-sm">{{ message }}</p>
+</div>
+{%- endmacro %}

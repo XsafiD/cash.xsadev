@@ -1,15 +1,40 @@
-/* Override kecil di atas Tailwind CDN. */
+/* Token & helper non-Tailwind — warna mengikuti design token di base.html. */
+
+/* Angka finansial selalu tabular agar sejajar vertikal. */
+.font-numeric,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scrollbar gelap selaras kanvas. */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #020617;
+  background: #0b0e11;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #2b3139;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #3a424c;
+}
+
+/* Native control (date, select, month) di tema gelap. */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+  filter: invert(72%) sepia(8%) saturate(488%) hue-rotate(176deg) brightness(92%) contrast(86%);
+}
+
+/* Sembunyikan marker default <details> agar tidak dobel dengan ikon chevron. */
+details > summary {
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+details[open] > summary .detail-chevron {
+  transform: rotate(180deg);
 }

@@ -5,22 +5,64 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Cash Xsadev{% endblock %}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: 'class' };</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            canvas: "#0b0e11",
+            surface: "#1e2329",
+            "surface-elevated": "#2b3139",
+            hairline: "#2b3139",
+            ink: "#eaecef",
+            muted: "#707a8a",
+            "muted-strong": "#929aa5",
+            primary: "#fcd535",
+            "primary-active": "#f0b90b",
+            "primary-disabled": "#3a3a1f",
+            "on-primary": "#181a20",
+            income: "#0ecb81",
+            expense: "#f6465d",
+            success: "#0ecb81",
+            danger: "#f6465d",
+            info: "#3b82f6",
+          },
+          borderRadius: { md: "6px", lg: "8px", xl: "12px" },
+          fontFamily: {
+            sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+            numeric: ["'JetBrains Mono'", "ui-monospace", "SFMono-Regular", "monospace"],
+          },
+          maxWidth: { content: "1280px" },
+        },
+      },
+    };
+  </script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="bg-slate-950 text-slate-200 min-h-screen antialiased">
+<body class="bg-canvas font-sans text-ink min-h-screen antialiased">
   {% if session.get('user_id') %}
     {% include "components/navbar.html" %}
   {% endif %}
 
-  <main class="mx-auto max-w-6xl px-4 py-8">
+  <main class="mx-auto max-w-content px-4 py-8">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
-        <div data-alert class="mb-4 rounded-lg border px-4 py-3 text-sm
-             {{ 'border-red-500/40 bg-red-500/10 text-red-300' if category == 'error'
-                else 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' }}">
-          {{ message }}
+        <div data-alert class="mb-4 flex items-start gap-3 rounded-lg border px-4 py-3 text-sm
+             {{ 'border-danger/40 bg-danger/10 text-danger' if category == 'error'
+                else 'border-success/40 bg-success/10 text-success' }}">
+          <i class="fa-solid {{ 'fa-circle-exclamation' if category == 'error' else 'fa-circle-check' }} mt-0.5"
+             aria-hidden="true"></i>
+          <span>{{ message }}</span>
         </div>
       {% endfor %}
     {% endwith %}

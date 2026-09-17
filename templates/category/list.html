@@ -1,65 +1,65 @@
 {% extends "base.html" %}
+{% from "components/card.html" import page_header %}
+{% from "components/badge.html" import type_badge %}
+{% from "components/button.html" import link_button %}
 {% block title %}Kategori · Cash Xsadev{% endblock %}
 {% block content %}
-<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-  <div>
-    <h1 class="text-2xl font-semibold text-white">Kategori</h1>
-    <p class="text-sm text-slate-400">Kelompok pemasukan &amp; pengeluaran.</p>
-  </div>
-  <a href="{{ url_for('category.create') }}"
-     class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-500">
-    + Tambah Kategori
-  </a>
-</div>
+{% call page_header("Kategori", "Kelompok pemasukan & pengeluaran.") %}
+  {{ link_button("Tambah Kategori", url_for('category.create'), icon="fa-plus") }}
+{% endcall %}
 
 <div class="mb-4 flex gap-2 text-sm">
   <a href="{{ url_for('category.index') }}"
-     class="rounded-lg px-3 py-1.5 {{ 'bg-slate-800 text-white' if not active_kind else 'text-slate-400 hover:text-slate-200' }}">
+     class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 transition
+            {{ 'bg-surface text-primary' if not active_kind else 'text-muted-strong hover:bg-surface hover:text-ink' }}">
     Semua
   </a>
   {% for key, label in kind_labels.items() %}
   <a href="{{ url_for('category.index', kind=key) }}"
-     class="rounded-lg px-3 py-1.5 {{ 'bg-slate-800 text-white' if active_kind == key else 'text-slate-400 hover:text-slate-200' }}">
+     class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 transition
+            {{ 'bg-surface text-primary' if active_kind == key else 'text-muted-strong hover:bg-surface hover:text-ink' }}">
     {{ label }}
   </a>
   {% endfor %}
 </div>
 
-<div class="overflow-hidden rounded-xl border border-slate-800">
+<div class="overflow-hidden rounded-xl border border-hairline bg-surface">
   <table class="w-full text-sm">
-    <thead class="bg-slate-900 text-left text-xs uppercase tracking-wide text-slate-500">
+    <thead class="bg-canvas text-left text-xs uppercase tracking-wide text-muted">
       <tr>
-        <th class="px-4 py-3">Nama</th>
-        <th class="px-4 py-3">Jenis</th>
-        <th class="px-4 py-3 text-right">Aksi</th>
+        <th class="px-4 py-3 font-medium">Nama</th>
+        <th class="px-4 py-3 font-medium">Jenis</th>
+        <th class="px-4 py-3 text-right font-medium">Aksi</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-slate-800">
+    <tbody class="divide-y divide-hairline">
       {% for category in categories %}
-      <tr class="hover:bg-slate-900/50">
-        <td class="px-4 py-3 text-slate-200">{{ category.name }}</td>
-        <td class="px-4 py-3">
-          {% if category.kind == "income" %}
-            <span class="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">Pemasukan</span>
-          {% else %}
-            <span class="rounded-full bg-rose-500/10 px-2 py-0.5 text-xs text-rose-300">Pengeluaran</span>
-          {% endif %}
-        </td>
+      <tr class="transition hover:bg-surface-elevated">
+        <td class="px-4 py-3 text-ink">{{ category.name }}</td>
+        <td class="px-4 py-3">{{ type_badge(category.kind) }}</td>
         <td class="px-4 py-3 text-right">
           <div class="flex items-center justify-end gap-3">
             <a href="{{ url_for('category.edit', category_id=category.id) }}"
-               class="text-xs text-slate-400 hover:text-white">Edit</a>
+               class="inline-flex items-center gap-1.5 text-xs text-muted-strong transition hover:text-primary">
+              <i class="fa-solid fa-pen" aria-hidden="true"></i>Edit
+            </a>
             <form method="POST" action="{{ url_for('category.delete', category_id=category.id) }}"
                   onsubmit="return confirm('Hapus kategori ini?');">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="text-xs text-slate-500 hover:text-red-400">Hapus</button>
+              <button type="submit"
+                      class="inline-flex items-center gap-1.5 text-xs text-muted transition hover:text-expense">
+                <i class="fa-solid fa-trash-can" aria-hidden="true"></i>Hapus
+              </button>
             </form>
           </div>
         </td>
       </tr>
       {% else %}
       <tr>
-        <td colspan="3" class="px-4 py-10 text-center text-slate-500">Belum ada kategori.</td>
+        <td colspan="3" class="px-4 py-10 text-center text-muted-strong">
+          <i class="fa-solid fa-tags mb-2 block text-lg" aria-hidden="true"></i>
+          Belum ada kategori.
+        </td>
       </tr>
       {% endfor %}
     </tbody>

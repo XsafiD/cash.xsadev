@@ -1,45 +1,53 @@
 {% extends "base.html" %}
+{% from "components/card.html" import page_header, empty_state %}
+{% from "components/button.html" import link_button %}
 {% block title %}Akun · Cash Xsadev{% endblock %}
 {% block content %}
-<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-  <div>
-    <h1 class="text-2xl font-semibold text-white">Akun</h1>
-    <p class="text-sm text-slate-400">Total saldo {{ total | rupiah }}</p>
-  </div>
-  <a href="{{ url_for('account.create') }}"
-     class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-500">
-    + Tambah Akun
-  </a>
-</div>
+{% set type_icons = {
+  "cash": "fa-money-bill-wave",
+  "bank": "fa-building-columns",
+  "ewallet": "fa-mobile-screen-button",
+} %}
+{% call page_header("Akun", "Total saldo " ~ (total | rupiah)) %}
+  {{ link_button("Tambah Akun", url_for('account.create'), icon="fa-plus") }}
+{% endcall %}
 
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
   {% for account in accounts %}
-  <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-    <div class="flex items-start justify-between">
-      <div>
-        <p class="font-medium text-white">{{ account.name }}</p>
-        <p class="text-xs text-slate-500">{{ type_labels.get(account.type, account.type) }}</p>
+  <div class="rounded-xl border border-hairline bg-surface p-5">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-elevated text-primary">
+          <i class="fa-solid {{ type_icons.get(account.type, 'fa-wallet') }}" aria-hidden="true"></i>
+        </span>
+        <div>
+          <p class="font-medium text-ink">{{ account.name }}</p>
+          <p class="text-xs text-muted">{{ type_labels.get(account.type, account.type) }}</p>
+        </div>
       </div>
-      <span class="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-400">
-        {{ type_labels.get(account.type, account.type) }}
-      </span>
     </div>
-    <p class="mt-4 text-xl font-semibold {{ 'text-rose-400' if account.balance < 0 else 'text-slate-100' }}">
+    <p class="mt-4 font-numeric text-xl font-semibold tabular-nums
+              {{ 'text-expense' if account.balance < 0 else 'text-ink' }}">
       {{ account.balance | rupiah }}
     </p>
-    <div class="mt-4 flex items-center gap-3 text-xs">
+    <div class="mt-4 flex items-center gap-3 border-t border-hairline pt-3 text-xs">
       <a href="{{ url_for('account.edit', account_id=account.id) }}"
-         class="text-slate-400 transition hover:text-white">Edit</a>
+         class="inline-flex items-center gap-1.5 text-muted-strong transition hover:text-primary">
+        <i class="fa-solid fa-pen" aria-hidden="true"></i>Edit
+      </a>
       <form method="POST" action="{{ url_for('account.delete', account_id=account.id) }}"
             onsubmit="return confirm('Hapus akun ini?');">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" class="text-slate-500 transition hover:text-red-400">Hapus</button>
+        <button type="submit"
+                class="inline-flex items-center gap-1.5 text-muted transition hover:text-expense">
+          <i class="fa-solid fa-trash-can" aria-hidden="true"></i>Hapus
+        </button>
       </form>
     </div>
   </div>
   {% else %}
-  <div class="rounded-xl border border-dashed border-slate-800 p-8 text-center text-slate-500 sm:col-span-2 lg:col-span-3">
-    Belum ada akun. Tambahkan akun pertamamu untuk mulai mencatat.
+  <div class="sm:col-span-2 lg:col-span-3">
+    {{ empty_state("Belum ada akun. Tambahkan akun pertamamu untuk mulai mencatat.", "fa-wallet") }}
   </div>
   {% endfor %}
 </div>

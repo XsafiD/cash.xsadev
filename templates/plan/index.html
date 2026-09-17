@@ -1,84 +1,77 @@
 {% extends "base.html" %}
 {% from "components/form.html" import render_field, submit %}
+{% from "components/card.html" import page_header, stat_card, panel, empty_state %}
 {% block title %}Perencanaan · Cash Xsadev{% endblock %}
 {% block content %}
-<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-  <div>
-    <h1 class="text-2xl font-semibold text-white">Perencanaan</h1>
-    <p class="text-sm text-slate-400">
-      Kalkulator kebutuhan bulanan — tidak memengaruhi saldo &amp; transaksi.
-    </p>
-  </div>
+{% call page_header("Perencanaan", "Kalkulator kebutuhan bulanan — tidak memengaruhi saldo & transaksi.") %}
   <form method="get" class="flex items-center gap-2">
     <input type="month" name="period" value="{{ period }}"
-           class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200">
+           class="rounded-md border border-hairline bg-surface px-3 py-2 text-sm text-ink focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
     <button type="submit"
-            class="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800">Lihat</button>
+            class="inline-flex items-center gap-2 rounded-md border border-hairline bg-surface px-3 py-2 text-sm text-ink transition hover:bg-surface-elevated">
+      <i class="fa-solid fa-magnifying-glass text-xs" aria-hidden="true"></i>Lihat
+    </button>
   </form>
-</div>
+{% endcall %}
 
 <div class="grid gap-4 sm:grid-cols-3">
-  <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-    <p class="text-xs uppercase tracking-wide text-slate-500">Uang Kotor</p>
-    <p class="mt-2 text-2xl font-semibold text-white">{{ summary.gross_income | rupiah }}</p>
+  <div class="rounded-xl border border-hairline bg-surface p-5">
+    <p class="text-xs font-medium uppercase tracking-wide text-muted">Uang Kotor</p>
+    <p class="mt-2 font-numeric text-2xl font-semibold tabular-nums text-ink">
+      {{ summary.gross_income | rupiah }}
+    </p>
     <form method="POST" action="{{ url_for('plan.set_gross') }}" class="mt-4" novalidate>
       {{ gross_form.hidden_tag() }}
       <input type="hidden" name="period" value="{{ period }}">
       <div class="flex items-end gap-2">
         <div class="flex-1">{{ render_field(gross_form.gross_income, placeholder="8000000") }}</div>
         <button type="submit"
-                class="mb-4 rounded-lg bg-slate-800 px-3 py-2 text-xs text-slate-200 hover:bg-slate-700">
-          Simpan
+                class="mb-4 inline-flex items-center gap-1.5 rounded-md bg-surface-elevated px-3 py-2 text-xs font-medium text-ink transition hover:bg-primary hover:text-on-primary">
+          <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Simpan
         </button>
       </div>
     </form>
   </div>
 
-  <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-    <p class="text-xs uppercase tracking-wide text-slate-500">Total Kebutuhan</p>
-    <p class="mt-2 text-2xl font-semibold text-amber-400">{{ summary.total_needs | rupiah }}</p>
-    <p class="mt-4 text-xs text-slate-500">Dari item kebutuhan yang aktif dihitung.</p>
-  </div>
-
-  <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-    <p class="text-xs uppercase tracking-wide text-slate-500">Sisa Uang Dingin</p>
-    <p class="mt-2 text-2xl font-semibold {{ 'text-emerald-400' if summary.net_income >= 0 else 'text-rose-400' }}">
-      {{ summary.net_income | rupiah }}
-    </p>
-    <p class="mt-4 text-xs text-slate-500">Uang kotor − total kebutuhan.</p>
-  </div>
+  {{ stat_card("Total Kebutuhan", summary.total_needs | rupiah, tone="primary", icon="fa-list-check") }}
+  {{ stat_card("Sisa Uang Dingin", summary.net_income | rupiah,
+       tone=("income" if summary.net_income >= 0 else "expense"), icon="fa-sack-dollar") }}
 </div>
 
 <div class="mt-8 grid gap-6 lg:grid-cols-3">
   <div class="lg:col-span-2">
-    <h2 class="mb-3 text-lg font-semibold text-white">Item Kebutuhan Bulanan</h2>
+    <h2 class="mb-3 text-lg font-semibold text-ink">Item Kebutuhan Bulanan</h2>
     <div class="space-y-2">
       {% for item in items %}
-      <details class="rounded-xl border border-slate-800 bg-slate-900/60">
+      <details class="rounded-xl border border-hairline bg-surface">
         <summary class="flex cursor-pointer items-center justify-between px-4 py-3">
-          <div>
-            <span class="{{ 'text-slate-200' if item.is_active else 'text-slate-500 line-through' }}">
-              {{ item.name }}
-            </span>
-            {% if item.note %}
-              <span class="ml-2 text-xs text-slate-500">{{ item.note }}</span>
-            {% endif %}
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-chevron-down detail-chevron text-xs text-muted transition-transform" aria-hidden="true"></i>
+            <div>
+              <span class="{{ 'text-ink' if item.is_active else 'text-muted line-through' }}">
+                {{ item.name }}
+              </span>
+              {% if item.note %}
+                <span class="ml-2 text-xs text-muted">{{ item.note }}</span>
+              {% endif %}
+            </div>
           </div>
-          <span class="text-sm font-medium text-slate-300">{{ item.amount | rupiah }}</span>
+          <span class="font-numeric text-sm font-medium tabular-nums text-muted-strong">{{ item.amount | rupiah }}</span>
         </summary>
 
-        <div class="border-t border-slate-800 px-4 py-4">
+        <div class="border-t border-hairline px-4 py-4">
           <form method="POST" action="{{ url_for('plan.update_item', item_id=item.id) }}" novalidate>
             {{ edit_forms[item.id].hidden_tag() }}
             <input type="hidden" name="period" value="{{ period }}">
             {{ render_field(edit_forms[item.id].name) }}
             {{ render_field(edit_forms[item.id].amount) }}
             {{ render_field(edit_forms[item.id].note) }}
-            <label class="mb-4 flex items-center gap-2 text-sm text-slate-300">
-              {{ edit_forms[item.id].is_active() }} Aktif dihitung
+            <label class="mb-4 flex items-center gap-2 text-sm text-muted-strong">
+              {{ edit_forms[item.id].is_active(class="h-4 w-4 rounded border-hairline bg-canvas text-primary focus:ring-primary") }}
+              Aktif dihitung
             </label>
             <div class="flex items-center gap-2">
-              {{ submit("Perbarui") }}
+              {{ submit("Perbarui", icon="fa-floppy-disk") }}
             </div>
           </form>
 
@@ -86,29 +79,31 @@
                 class="mt-3" onsubmit="return confirm('Hapus item ini?');">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="period" value="{{ period }}">
-            <button type="submit" class="text-xs text-slate-500 hover:text-red-400">Hapus item</button>
+            <button type="submit"
+                    class="inline-flex items-center gap-1.5 text-xs text-muted transition hover:text-expense">
+              <i class="fa-solid fa-trash-can" aria-hidden="true"></i>Hapus item
+            </button>
           </form>
         </div>
       </details>
       {% else %}
-      <div class="rounded-xl border border-dashed border-slate-800 p-8 text-center text-slate-500">
-        Belum ada item kebutuhan. Tambahkan di samping.
-      </div>
+      {{ empty_state("Belum ada item kebutuhan. Tambahkan di samping.", "fa-list-check") }}
       {% endfor %}
     </div>
   </div>
 
   <div>
-    <h2 class="mb-3 text-lg font-semibold text-white">Tambah Item</h2>
-    <form method="POST" action="{{ url_for('plan.create_item') }}"
-          class="rounded-xl border border-slate-800 bg-slate-900/60 p-5" novalidate>
+    <h2 class="mb-3 text-lg font-semibold text-ink">Tambah Item</h2>
+    {% call panel() %}
+    <form method="POST" action="{{ url_for('plan.create_item') }}" novalidate>
       {{ item_form.hidden_tag() }}
       <input type="hidden" name="period" value="{{ period }}">
       {{ render_field(item_form.name, placeholder="Sewa kos") }}
       {{ render_field(item_form.amount, placeholder="1500000") }}
       {{ render_field(item_form.note, placeholder="Opsional") }}
-      {{ submit("Tambah") }}
+      {{ submit("Tambah", icon="fa-plus") }}
     </form>
+    {% endcall %}
   </div>
 </div>
 {% endblock %}

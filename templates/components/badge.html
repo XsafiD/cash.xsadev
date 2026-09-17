@@ -1,0 +1,22 @@
+{% macro type_badge(kind) -%}
+  {%- if kind == "income" -%}
+    <span class="inline-flex items-center gap-1.5 rounded bg-income/10 px-2 py-0.5 text-xs font-medium text-income">
+      <i class="fa-solid fa-arrow-down text-[10px]" aria-hidden="true"></i>Pemasukan
+    </span>
+  {%- elif kind == "expense" -%}
+    <span class="inline-flex items-center gap-1.5 rounded bg-expense/10 px-2 py-0.5 text-xs font-medium text-expense">
+      <i class="fa-solid fa-arrow-up text-[10px]" aria-hidden="true"></i>Pengeluaran
+    </span>
+  {%- else -%}
+    <span class="inline-flex items-center gap-1.5 rounded bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
+      <i class="fa-solid fa-right-left text-[10px]" aria-hidden="true"></i>Transfer
+    </span>
+  {%- endif -%}
+{%- endmacro %}
+
+
+{% macro neutral_badge(label) -%}
+  <span class="inline-flex items-center gap-1.5 rounded bg-surface-elevated px-2 py-0.5 text-xs font-medium text-muted-strong">
+    {{ label }}
+  </span>
+{%- endmacro %}

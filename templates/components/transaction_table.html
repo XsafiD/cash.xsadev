@@ -1,44 +1,40 @@
+{% from "components/badge.html" import type_badge %}
+
 {% macro transaction_table(transactions, show_delete=false) -%}
-<div class="overflow-hidden rounded-xl border border-slate-800">
+<div class="overflow-hidden rounded-xl border border-hairline bg-surface">
   <table class="w-full text-sm">
-    <thead class="bg-slate-900 text-left text-xs uppercase tracking-wide text-slate-500">
+    <thead class="bg-canvas text-left text-xs uppercase tracking-wide text-muted">
       <tr>
-        <th class="px-4 py-3">Tanggal</th>
-        <th class="hidden px-4 py-3 sm:table-cell">Tipe</th>
-        <th class="px-4 py-3">Akun</th>
-        <th class="hidden px-4 py-3 md:table-cell">Kategori</th>
-        <th class="hidden px-4 py-3 lg:table-cell">Catatan</th>
-        <th class="px-4 py-3 text-right">Nominal</th>
-        {% if show_delete %}<th class="px-4 py-3 text-right">Aksi</th>{% endif %}
+        <th class="px-4 py-3 font-medium">Tanggal</th>
+        <th class="hidden px-4 py-3 font-medium sm:table-cell">Tipe</th>
+        <th class="px-4 py-3 font-medium">Akun</th>
+        <th class="hidden px-4 py-3 font-medium md:table-cell">Kategori</th>
+        <th class="hidden px-4 py-3 font-medium lg:table-cell">Catatan</th>
+        <th class="px-4 py-3 text-right font-medium">Nominal</th>
+        {% if show_delete %}<th class="px-4 py-3 text-right font-medium">Aksi</th>{% endif %}
       </tr>
     </thead>
-    <tbody class="divide-y divide-slate-800">
+    <tbody class="divide-y divide-hairline">
       {% for tx in transactions %}
-      <tr class="hover:bg-slate-900/50">
-        <td class="whitespace-nowrap px-4 py-3 text-slate-400">
+      <tr class="transition hover:bg-surface-elevated">
+        <td class="whitespace-nowrap px-4 py-3 font-numeric tabular-nums text-muted-strong">
           {{ tx.occurred_on.strftime("%d %b %Y") if tx.occurred_on else "-" }}
         </td>
         <td class="hidden px-4 py-3 sm:table-cell">
-          {% if tx.type == "income" %}
-            <span class="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">Pemasukan</span>
-          {% elif tx.type == "expense" %}
-            <span class="rounded-full bg-rose-500/10 px-2 py-0.5 text-xs text-rose-300">Pengeluaran</span>
-          {% else %}
-            <span class="rounded-full bg-indigo-500/10 px-2 py-0.5 text-xs text-indigo-300">Transfer</span>
-          {% endif %}
+          {{ type_badge(tx.type) }}
         </td>
-        <td class="px-4 py-3 text-slate-300">
+        <td class="px-4 py-3 text-ink">
           {{ tx.account.name if tx.account else "-" }}
-          {% if tx.account_to %}<span class="text-slate-500">→</span> {{ tx.account_to.name }}{% endif %}
+          {% if tx.account_to %}<span class="text-muted">→</span> {{ tx.account_to.name }}{% endif %}
         </td>
-        <td class="hidden px-4 py-3 text-slate-400 md:table-cell">
+        <td class="hidden px-4 py-3 text-muted-strong md:table-cell">
           {{ tx.category.name if tx.category else "-" }}
         </td>
-        <td class="hidden px-4 py-3 text-slate-500 lg:table-cell">{{ tx.note or "-" }}</td>
-        <td class="whitespace-nowrap px-4 py-3 text-right font-medium
-                   {{ 'text-emerald-400' if tx.type == 'income'
-                      else 'text-rose-400' if tx.type == 'expense'
-                      else 'text-indigo-300' }}">
+        <td class="hidden px-4 py-3 text-muted lg:table-cell">{{ tx.note or "-" }}</td>
+        <td class="whitespace-nowrap px-4 py-3 text-right font-numeric font-medium tabular-nums
+                   {{ 'text-income' if tx.type == 'income'
+                      else 'text-expense' if tx.type == 'expense'
+                      else 'text-info' }}">
           {{ '+' if tx.type == 'income' else '-' if tx.type == 'expense' else '' }}{{ tx.amount | rupiah }}
         </td>
         {% if show_delete %}
@@ -46,14 +42,18 @@
           <form method="POST" action="{{ url_for('transaction.delete', transaction_id=tx.id) }}"
                 onsubmit="return confirm('Hapus transaksi ini? Saldo akan dikembalikan.');">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="text-xs text-slate-500 transition hover:text-red-400">Hapus</button>
+            <button type="submit"
+                    class="inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs text-muted transition hover:bg-expense/10 hover:text-expense">
+              <i class="fa-solid fa-trash-can" aria-hidden="true"></i>Hapus
+            </button>
           </form>
         </td>
         {% endif %}
       </tr>
       {% else %}
       <tr>
-        <td colspan="{{ 7 if show_delete else 6 }}" class="px-4 py-10 text-center text-slate-500">
+        <td colspan="{{ 7 if show_delete else 6 }}" class="px-4 py-10 text-center text-muted-strong">
+          <i class="fa-solid fa-inbox mb-2 block text-lg" aria-hidden="true"></i>
           Belum ada transaksi.
         </td>
       </tr>
