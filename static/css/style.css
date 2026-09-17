@@ -28,6 +28,11 @@ input[type="month"]::-webkit-calendar-picker-indicator {
   filter: invert(72%) sepia(8%) saturate(488%) hue-rotate(176deg) brightness(92%) contrast(86%);
 }
 
+/* Combobox: putar chevron saat dropdown terbuka. */
+[data-combobox].is-open [data-combobox-chevron] {
+  transform: rotate(180deg);
+}
+
 /* Sembunyikan marker default <details> agar tidak dobel dengan ikon chevron. */
 details > summary {
   list-style: none;

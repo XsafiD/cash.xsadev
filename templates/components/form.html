@@ -21,3 +21,51 @@
 {% macro submit(label="Simpan", variant="primary", icon=None, full=False) -%}
   {{ button(label, variant=variant, type="submit", icon=icon, full=full) }}
 {%- endmacro %}
+
+
+{% macro searchable_select(field, options, placeholder="Cari...", empty_text="Tidak ditemukan") -%}
+  {% set base = "w-full rounded-md border bg-canvas px-3 py-2 text-sm text-ink
+                 placeholder:text-muted focus:outline-none focus:ring-1" %}
+  {% set state = "border-expense focus:border-expense focus:ring-expense"
+                 if field.errors else
+                 "border-hairline focus:border-primary focus:ring-primary" %}
+  <div data-combobox class="mb-4">
+    <label for="{{ field.id }}-search" class="mb-1.5 block text-sm font-medium text-muted-strong">
+      {{ field.label.text }}
+    </label>
+
+    {# Fallback tanpa JS: select native. JS menyembunyikan ini lalu menampilkan combobox. #}
+    {{ field(class=base + " " + state, **{"data-combobox-native": "true", "aria-label": field.label.text}) }}
+
+    <div data-combobox-control class="relative hidden">
+      <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted"
+         aria-hidden="true"></i>
+      <input type="text" id="{{ field.id }}-search" data-combobox-input
+             class="w-full rounded-md border bg-canvas py-2 pl-8 pr-8 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-1 {{ state }}"
+             placeholder="{{ placeholder }}" autocomplete="off" role="combobox"
+             aria-expanded="false" aria-autocomplete="list" aria-haspopup="listbox"
+             aria-controls="{{ field.id }}-list">
+      <i class="fa-solid fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted transition"
+         data-combobox-chevron aria-hidden="true"></i>
+
+      <div data-combobox-menu
+           class="absolute z-20 mt-1 hidden w-full overflow-hidden rounded-md border border-hairline bg-surface-elevated shadow-lg">
+        <ul id="{{ field.id }}-list" data-combobox-list role="listbox" class="max-h-56 overflow-auto py-1">
+          {% for option in options %}
+            <li role="option" data-combobox-option data-value="{{ option.value }}" data-kind="{{ option.kind }}"
+                class="cursor-pointer px-3 py-2 text-sm text-ink transition hover:bg-surface">
+              {{ option.label }}
+            </li>
+          {% endfor %}
+        </ul>
+        <p data-combobox-empty class="hidden px-3 py-2 text-sm text-muted">{{ empty_text }}</p>
+      </div>
+    </div>
+
+    {% for error in field.errors %}
+      <p class="mt-1 flex items-center gap-1.5 text-xs text-expense">
+        <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>{{ error }}
+      </p>
+    {% endfor %}
+  </div>
+{%- endmacro %}

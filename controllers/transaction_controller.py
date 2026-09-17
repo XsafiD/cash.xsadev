@@ -25,7 +25,7 @@ _transaction_service = TransactionService()
 _account_service = AccountService()
 _category_service = CategoryService()
 
-TYPE_LABELS = {"income": "Pemasukan", "expense": "Pengeluaran", "transfer": "Transfer"}
+TYPE_LABELS = {"expense": "Pengeluaran", "income": "Pemasukan", "transfer": "Transfer"}
 ACCOUNT_TYPE_LABELS = {"cash": "Tunai", "bank": "Bank", "ewallet": "E-Wallet"}
 KIND_LABELS = {"income": "Pemasukan", "expense": "Pengeluaran"}
 
@@ -34,6 +34,7 @@ class TransactionForm(FlaskForm):
     type = SelectField(
         "Tipe",
         choices=[(key, label) for key, label in TYPE_LABELS.items()],
+        default="expense",
         validators=[DataRequired(message="Tipe wajib dipilih")],
     )
     amount = DecimalField(
@@ -82,7 +83,7 @@ class ConfirmForm(FlaskForm):
     pass
 
 
-def _populate_choices(form: TransactionForm, user_id: str) -> None:
+def _populate_choices(form: TransactionForm, user_id: str) -> list:
     accounts = _account_service.get_all(user_id)
     account_choices = [
         (a.id, f"{a.name} · {ACCOUNT_TYPE_LABELS.get(a.type, a.type)}")
@@ -95,6 +96,7 @@ def _populate_choices(form: TransactionForm, user_id: str) -> None:
     form.category_id.choices = [("", "—")] + [
         (c.id, f"{c.name} ({KIND_LABELS.get(c.kind, c.kind)})") for c in categories
     ]
+    return categories
 
 
 @transaction_bp.route("/")
@@ -144,8 +146,14 @@ def create():
             return redirect(url_for("transaction.index"))
         except ValueError as err:
             flash(str(err), "error")
-    _populate_choices(form, session["user_id"])
-    return render_template("transaction/form.html", form=form)
+    categories = _populate_choices(form, session["user_id"])
+    return render_template(
+        "transaction/form.html",
+        form=form,
+        categories=[
+            {"value": c.id, "label": c.name, "kind": c.kind} for c in categories
+        ],
+    )
 
 
 @transaction_bp.route("/<transaction_id>/delete", methods=["POST"])

@@ -1,27 +1,97 @@
 {% extends "base.html" %}
-{% from "components/form.html" import render_field, submit %}
+{% from "components/form.html" import render_field, submit, searchable_select %}
 {% from "components/card.html" import page_header, panel %}
 {% from "components/button.html" import link_button %}
 {% block title %}Catat Transaksi · Cash Xsadev{% endblock %}
 {% block content %}
+{% set type_icons = {
+  "expense": "fa-circle-minus",
+  "income": "fa-circle-plus",
+  "transfer": "fa-right-left",
+} %}
+{% set type_active = {
+  "expense": "bg-expense/10 text-expense ring-1 ring-inset ring-expense/40",
+  "income": "bg-income/10 text-income ring-1 ring-inset ring-income/40",
+  "transfer": "bg-primary/10 text-primary ring-1 ring-inset ring-primary/40",
+} %}
+{% set seg_inactive = "text-muted-strong hover:bg-surface-elevated hover:text-ink" %}
+{% set amount_state = "border-expense focus:border-expense focus:ring-expense"
+                      if form.amount.errors else
+                      "border-hairline focus:border-primary focus:ring-primary" %}
 <div class="mx-auto max-w-md">
   {{ page_header("Catat Transaksi", "Isi detail transaksi di bawah ini.") }}
   {% call panel() %}
-  <form method="POST" novalidate>
+  <form method="POST" novalidate data-transaction-form>
     {{ form.hidden_tag() }}
-    {{ render_field(form.type) }}
-    {{ render_field(form.amount, placeholder="50000") }}
-    {{ render_field(form.account_id) }}
-    {{ render_field(form.account_to_id) }}
-    {{ render_field(form.category_id) }}
+
+    {# ── Tipe (segmented control; select native = fallback tanpa JS) ── #}
+    <div class="mb-5" data-segmented>
+      <span class="mb-1.5 block text-sm font-medium text-muted-strong">Tipe</span>
+      {{ form.type(class="w-full rounded-md border border-hairline bg-canvas px-3 py-2 text-sm text-ink focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary", **{"data-segmented-select": "true"}) }}
+      <div data-segmented-control role="tablist" aria-label="Tipe transaksi"
+           class="hidden grid-cols-3 gap-1 rounded-lg border border-hairline bg-surface p-1">
+        {% for value, label in form.type.choices %}
+          {% set is_active = form.type.data == value %}
+          <button type="button" role="tab" data-segmented-option="{{ value }}"
+                  data-active-class="{{ type_active.get(value, type_active['expense']) }}"
+                  data-inactive-class="{{ seg_inactive }}"
+                  aria-selected="{{ 'true' if is_active else 'false' }}"
+                  class="inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition {{ type_active.get(value) if is_active else seg_inactive }}">
+            <i class="fa-solid {{ type_icons.get(value, 'fa-circle') }}" aria-hidden="true"></i>{{ label }}
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# ── Nominal (paling menonjol) ── #}
+    <div class="mb-4">
+      <label for="{{ form.amount.id }}" class="mb-1.5 block text-sm font-medium text-muted-strong">
+        {{ form.amount.label.text }}
+      </label>
+      <div class="relative">
+        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-strong">
+          Rp
+        </span>
+        {{ form.amount(class="w-full rounded-md border bg-canvas py-3 pl-10 pr-3 text-2xl font-semibold font-numeric text-ink placeholder:text-muted focus:outline-none focus:ring-1 " + amount_state, placeholder="0") }}
+      </div>
+      {% for error in form.amount.errors %}
+        <p class="mt-1 flex items-center gap-1.5 text-xs text-expense">
+          <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>{{ error }}
+        </p>
+      {% endfor %}
+    </div>
+
+    {# ── Akun (semua tipe; label jadi "Akun Asal" saat transfer) ── #}
+    <div data-account-field data-label-default="Akun" data-label-transfer="Akun Asal">
+      {{ render_field(form.account_id) }}
+    </div>
+
+    {# ── Akun tujuan + tukar (khusus transfer) ── #}
+    <div data-type-field="transfer" {{ 'hidden' if form.type.data != 'transfer' }}>
+      <div class="-mt-2 mb-4 flex justify-end">
+        <button type="button" data-swap-accounts aria-label="Tukar akun asal dan tujuan"
+                class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-strong transition hover:bg-surface hover:text-ink">
+          <i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i>Tukar
+        </button>
+      </div>
+      {{ render_field(form.account_to_id) }}
+      <p class="mb-4 flex items-start gap-2 rounded-md bg-surface-elevated px-3 py-2 text-xs text-muted-strong">
+        <i class="fa-solid fa-circle-info mt-0.5 text-info" aria-hidden="true"></i>
+        <span>Transfer memindahkan saldo dari akun asal ke akun tujuan (kategori diabaikan).</span>
+      </p>
+    </div>
+
+    {# ── Kategori (pemasukan/pengeluaran) ── #}
+    <div data-type-field="income expense" {{ 'hidden' if form.type.data == 'transfer' }}>
+      {{ searchable_select(form.category_id, categories, placeholder="Cari kategori...") }}
+      <p class="-mt-2 mb-4 flex items-start gap-2 rounded-md bg-surface-elevated px-3 py-2 text-xs text-muted-strong">
+        <i class="fa-solid fa-circle-info mt-0.5 text-info" aria-hidden="true"></i>
+        <span>Pemasukan/pengeluaran wajib pilih kategori yang cocok.</span>
+      </p>
+    </div>
+
     {{ render_field(form.occurred_on) }}
     {{ render_field(form.note, placeholder="Makan siang (opsional)") }}
-
-    <p class="mb-4 flex items-start gap-2 rounded-md bg-surface-elevated px-3 py-2 text-xs text-muted-strong">
-      <i class="fa-solid fa-circle-info mt-0.5 text-info" aria-hidden="true"></i>
-      <span>Transfer cukup pilih akun asal dan akun tujuan (kategori diabaikan).
-      Pemasukan/pengeluaran wajib pilih kategori yang cocok.</span>
-    </p>
 
     <div class="flex items-center gap-2">
       {{ submit("Simpan", icon="fa-floppy-disk") }}
