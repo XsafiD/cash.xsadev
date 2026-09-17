@@ -1,0 +1,3 @@
+[submodule "docs/coding-standards"]
+	path = docs/coding-standards
+	url = git@github.com:XsafiD/flask-coding-standards.git
