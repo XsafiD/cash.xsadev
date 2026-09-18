@@ -1,0 +1,8 @@
+{% macro wordmark(name, suffix, href="#", icon="fa-coins") -%}
+{#- Wordmark brand-family: name = warna primary (bold), suffix = netral on-canvas.
+    Lihat TOKENS.md § Komposisi wordmark. -#}
+<a href="{{ href }}" class="flex items-center gap-2 text-lg tracking-tight">
+  <i class="fa-solid {{ icon }} text-primary" aria-hidden="true"></i>
+  <span><span class="font-bold text-primary">{{ name }}</span><span class="font-normal text-on-canvas">{{ suffix }}</span></span>
+</a>
+{%- endmacro %}

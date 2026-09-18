@@ -24,3 +24,17 @@ Standards repo ini: `docs/coding-standards/` (git submodule).
 
 Domain aplikasi: **pencatatan keuangan** (buku catatan + halaman Perencanaan
 kalkulator terpisah). Rencana lengkap: `docs/2026-09-17 - rencana-cash-xsadev.md`.
+
+## UI Kit (WAJIB)
+
+UI kit lintas stack: `docs/xsadev-ui/` (git submodule → `XsafiD/xsadev-kit`, pin `v1.0.0`).
+
+- `docs/xsadev-ui/core/` — stack-agnostic: `TOKENS.md`, `themes/`, `css/`, `js/`, `patterns/`.
+- `docs/xsadev-ui/guides/` — panduan generik: design token, layout app shell, form controls.
+- `docs/xsadev-ui/adapters/flask/` — **referensi hidup** komponen Jinja + shell yang dipakai app ini.
+
+Aturan: jangan menyalin/mengubah komponen kit secara ad-hoc di project ini —
+selaraskan lewat `adapters/flask/`. Komponen domain khusus project (mis.
+`components/transaction_table.html`, `components/type_badge.html`) tetap lokal.
+Ganti tampilan = ganti `static/js/theme.js`, bukan sunting shell.
+

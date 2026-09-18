@@ -1,3 +1,18 @@
+{% from "components/brand.html" import wordmark %}
+
+{# UI Kit — Shell "sidebar-left".
+   Layout: sidebar tetap (statis) di kiri pada layar besar, drawer + burger pada layar kecil.
+   Aturan lengkap: guides/layout-app-shell.md · Token: core/TOKENS.md
+
+   Yang perlu disesuaikan per project:
+   - nama & suffix wordmark, endpoint di bawah
+   - daftar menu `nav`
+   - key session user (contoh: 'user_name') dan route logout #}
+
+{% set brand_name = "cash" %}
+{% set brand_suffix = ".xsadev" %}
+{% set brand_home = url_for('dashboard.index') %}
+
 {% set nav = [
   ("dashboard.index", "Dashboard", "fa-chart-pie"),
   ("transaction.index", "Transaksi", "fa-arrow-right-arrow-left"),
@@ -6,12 +21,9 @@
   ("plan.index", "Perencanaan", "fa-calculator"),
 ] %}
 
-{# Top bar khusus mobile: logo + tombol burger #}
+{# Top bar khusus mobile: wordmark + tombol burger #}
 <header class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-hairline bg-canvas/95 px-4 backdrop-blur md:hidden">
-  <a href="{{ url_for('dashboard.index') }}" class="flex items-center gap-2 text-lg tracking-tight">
-    <i class="fa-solid fa-coins text-primary" aria-hidden="true"></i>
-    <span><span class="font-bold text-primary">cash</span><span class="font-normal text-white">.xsadev</span></span>
-  </a>
+  {{ wordmark(brand_name, brand_suffix, href=brand_home) }}
   <button type="button" data-sidebar-toggle aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false"
           class="flex h-10 w-10 items-center justify-center rounded-md text-muted-strong transition hover:bg-surface hover:text-ink">
     <i class="fa-solid fa-bars" aria-hidden="true"></i>
@@ -20,14 +32,11 @@
 
 <div data-sidebar-backdrop class="fixed inset-0 z-30 hidden bg-black/60 md:hidden"></div>
 
-{# Sidebar tetap (statis) di kiri; drawer pada layar kecil #}
 <aside id="sidebar" data-sidebar
        class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-hairline bg-canvas transition-transform duration-200 md:translate-x-0">
-  <a href="{{ url_for('dashboard.index') }}"
-     class="flex h-16 shrink-0 items-center gap-2 border-b border-hairline px-5 text-lg tracking-tight">
-    <i class="fa-solid fa-coins text-primary" aria-hidden="true"></i>
-    <span><span class="font-bold text-primary">cash</span><span class="font-normal text-white">.xsadev</span></span>
-  </a>
+  <div class="flex h-16 shrink-0 items-center border-b border-hairline px-5">
+    {{ wordmark(brand_name, brand_suffix, href=brand_home) }}
+  </div>
 
   <nav class="flex-1 overflow-y-auto p-3 text-sm" aria-label="Navigasi utama">
     <ul class="space-y-1">

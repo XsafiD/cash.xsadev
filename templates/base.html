@@ -1,3 +1,12 @@
+{# UI Kit — Shell "sidebar-left": base.html.
+   Salin ke templates/base.html project. Lihat guides/layout-app-shell.md.
+
+   Dependency:
+   - components/sidebar.html            (shell sidebar)
+   - static/js/theme.js                 (binding token — pilih dari core/themes/)
+   - static/js/app.js                   (core/js/app.js)
+   - static/css/style.css              (core/css/style.css)
+   - user session key 'user_name' + endpoint auth.logout #}
 {% from "components/form.html" import render_field %}
 <!DOCTYPE html>
 <html lang="id" class="dark">
@@ -14,43 +23,18 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
   <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  {# Binding token: ganti isi file ini (dari core/themes/) untuk mengganti seluruh tampilan. #}
+  <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
   <script>
     tailwind.config = {
       darkMode: "class",
-      theme: {
-        extend: {
-          colors: {
-            canvas: "#0b0e11",
-            surface: "#1e2329",
-            "surface-elevated": "#2b3139",
-            hairline: "#2b3139",
-            ink: "#eaecef",
-            muted: "#707a8a",
-            "muted-strong": "#929aa5",
-            primary: "#fcd535",
-            "primary-active": "#f0b90b",
-            "primary-disabled": "#3a3a1f",
-            "on-primary": "#181a20",
-            income: "#0ecb81",
-            expense: "#f6465d",
-            success: "#0ecb81",
-            danger: "#f6465d",
-            info: "#3b82f6",
-          },
-          borderRadius: { md: "6px", lg: "8px", xl: "12px" },
-          fontFamily: {
-            sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
-            numeric: ["'JetBrains Mono'", "ui-monospace", "SFMono-Regular", "monospace"],
-          },
-          maxWidth: { content: "1280px" },
-        },
-      },
+      theme: { extend: window.UI_KIT_THEME },
       safelist: [
         "bg-expense/10", "text-expense", "ring-1", "ring-inset", "ring-expense/40",
         "bg-income/10", "text-income", "ring-income/40",
         "bg-primary/10", "text-primary", "ring-primary/40",
-        "text-muted-strong", "hover:bg-surface-elevated", "hover:text-ink",
-        "bg-surface",
+        "bg-info/10", "text-info", "bg-success/10", "text-success", "bg-danger/10", "text-danger",
+        "text-muted-strong", "hover:bg-surface-elevated", "hover:text-ink", "bg-surface",
       ],
     };
   </script>
@@ -59,24 +43,24 @@
 <body class="bg-canvas font-sans text-ink min-h-screen antialiased">
   {% set authed = session.get('user_id') %}
   {% if authed %}
-    {% include "components/navbar.html" %}
+    {% include "components/sidebar.html" %}
   {% endif %}
 
   <div class="{{ 'md:pl-64' if authed else '' }}">
-    <main class="mx-auto max-w-content px-4 py-8">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        <div data-alert class="mb-4 flex items-start gap-3 rounded-lg border px-4 py-3 text-sm
-             {{ 'border-danger/40 bg-danger/10 text-danger' if category == 'error'
-                else 'border-success/40 bg-success/10 text-success' }}">
-          <i class="fa-solid {{ 'fa-circle-exclamation' if category == 'error' else 'fa-circle-check' }} mt-0.5"
-             aria-hidden="true"></i>
-          <span>{{ message }}</span>
-        </div>
-      {% endfor %}
-    {% endwith %}
+    <main class="mx-auto max-w-7xl px-4 py-8">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div data-alert class="mb-4 flex items-start gap-3 rounded-lg border px-4 py-3 text-sm
+               {{ 'border-danger/40 bg-danger/10 text-danger' if category == 'error'
+                  else 'border-success/40 bg-success/10 text-success' }}">
+            <i class="fa-solid {{ 'fa-circle-exclamation' if category == 'error' else 'fa-circle-check' }} mt-0.5"
+               aria-hidden="true"></i>
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      {% endwith %}
 
-    {% block content %}{% endblock %}
+      {% block content %}{% endblock %}
     </main>
   </div>
 

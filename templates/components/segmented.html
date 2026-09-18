@@ -1,0 +1,55 @@
+{% macro segmented(name, options, selected="", field_id=None, label="", inactive_class="text-muted-strong hover:bg-surface-elevated hover:text-ink", default_active="bg-primary/10 text-primary ring-1 ring-inset ring-primary/40", has_error=False) -%}
+{#-
+  Segmented control bergaya token untuk 2–4 pilihan yang harus terlihat semua.
+  <select> native dirender sebagai fallback; JS (initSegmented) menyembunyikan
+  select lalu menampilkan kontrol segmented.
+
+  options: list tuple (value,label) atau dict {value,label,icon,active}.
+  `active` per opsi untuk tone berbeda (mis. expense/income/primary).
+-#}
+  {% set opts = [] %}
+  {% for option in options %}
+    {% if option is mapping %}
+      {% set _ = opts.append(option) %}
+    {% else %}
+      {% set _ = opts.append({"value": option[0], "label": option[1]}) %}
+    {% endif %}
+  {% endfor %}
+  {% set select_state = "border-danger focus:border-danger focus:ring-danger"
+                        if has_error else
+                        "border-hairline focus:border-primary focus:ring-primary" %}
+
+  <div data-segmented class="{{ 'mb-5' if label else '' }}">
+    {% if label %}<span class="mb-1.5 block text-sm font-medium text-muted-strong">{{ label }}</span>{% endif %}
+    <select name="{{ name }}" id="{{ field_id or name }}" data-segmented-select="true"
+            class="w-full rounded-md border bg-canvas px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 {{ select_state }}">
+      {% for o in opts %}
+        <option value="{{ o.value }}" {% if o.value == selected %}selected{% endif %}>{{ o.label }}</option>
+      {% endfor %}
+    </select>
+    <div data-segmented-control role="tablist" aria-label="{{ label or name }}"
+         class="hidden grid-flow-col auto-cols-fr gap-1 rounded-lg border border-hairline bg-surface p-1">
+      {% for o in opts %}
+        {% set is_active = o.value == selected %}
+        {% set active = o.active | default(default_active, true) %}
+        <button type="button" role="tab" data-segmented-option="{{ o.value }}"
+                data-active-class="{{ active }}" data-inactive-class="{{ inactive_class }}"
+                aria-selected="{{ 'true' if is_active else 'false' }}"
+                class="inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition {{ active if is_active else inactive_class }}">
+          {% if o.icon %}<i class="fa-solid {{ o.icon }}" aria-hidden="true"></i>{% endif %}{{ o.label }}
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+{%- endmacro %}
+
+
+{# ── WTForms ──────────────────────────────────────────────────────────────── #}
+
+{% macro segmented_field(field, icons={}, active_classes={}, label=None) -%}
+  {% set opts = [] %}
+  {% for value, text in field.choices %}
+    {% set _ = opts.append({"value": value, "label": text, "icon": icons.get(value), "active": active_classes.get(value)}) %}
+  {% endfor %}
+  {{ segmented(field.name, opts, selected=field.data, field_id=field.id, label=(field.label.text if label is none else label), has_error=bool(field.errors)) }}
+{%- endmacro %}

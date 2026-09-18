@@ -134,7 +134,7 @@
     const labelEl = root.querySelector("[data-combobox-label]");
     const menu = root.querySelector("[data-combobox-menu]");
     const empty = root.querySelector("[data-combobox-empty]");
-    const options = Array.from(root.querySelectorAll("[data-combobox-option]"));
+    let options = Array.from(root.querySelectorAll("[data-combobox-option]"));
     const display = input || trigger;
     if (!select || !control || !display || !menu) return;
 
@@ -225,6 +225,13 @@
       close();
     }
 
+    // Opsi dinamis: panggil setelah menambah/mengganti <li data-combobox-option>.
+    function refresh() {
+      options = Array.from(root.querySelectorAll("[data-combobox-option]"));
+      applyFilter();
+      syncDisplay();
+    }
+
     if (searchable) {
       input.addEventListener("focus", open);
       input.addEventListener("input", open);
@@ -277,11 +284,12 @@
       }
     });
 
-    options.forEach(function (opt) {
-      opt.addEventListener("mousedown", function (event) {
-        event.preventDefault();
-        choose(opt);
-      });
+    // Delegasi: opsi yang ditambahkan belakangan tetap berfungsi.
+    menu.addEventListener("mousedown", function (event) {
+      const opt = event.target.closest("[data-combobox-option]");
+      if (!opt) return;
+      event.preventDefault();
+      choose(opt);
     });
 
     document.addEventListener("click", function (event) {
@@ -290,6 +298,7 @@
 
     select.addEventListener("change", syncDisplay);
     root.addEventListener("combobox:reset", reset);
+    root.addEventListener("combobox:refresh", refresh);
 
     if (searchable && select.form) {
       select.form.addEventListener("submit", function () {

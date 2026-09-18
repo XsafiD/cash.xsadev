@@ -1,22 +1,15 @@
-{% macro type_badge(kind) -%}
-  {%- if kind == "income" -%}
-    <span class="inline-flex items-center gap-1.5 rounded bg-income/10 px-2 py-0.5 text-xs font-medium text-income">
-      <i class="fa-solid fa-arrow-down text-[10px]" aria-hidden="true"></i>Pemasukan
-    </span>
-  {%- elif kind == "expense" -%}
-    <span class="inline-flex items-center gap-1.5 rounded bg-expense/10 px-2 py-0.5 text-xs font-medium text-expense">
-      <i class="fa-solid fa-arrow-up text-[10px]" aria-hidden="true"></i>Pengeluaran
-    </span>
-  {%- else -%}
-    <span class="inline-flex items-center gap-1.5 rounded bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
-      <i class="fa-solid fa-right-left text-[10px]" aria-hidden="true"></i>Transfer
-    </span>
-  {%- endif -%}
-{%- endmacro %}
-
-
-{% macro neutral_badge(label) -%}
-  <span class="inline-flex items-center gap-1.5 rounded bg-surface-elevated px-2 py-0.5 text-xs font-medium text-muted-strong">
-    {{ label }}
+{% macro status_badge(label, tone="neutral", icon=None) -%}
+{#- tone: neutral | primary | income | expense | info | success | danger -#}
+  {%- set tones = {
+    "neutral": "bg-surface-elevated text-muted-strong",
+    "primary": "bg-primary/10 text-primary",
+    "income": "bg-income/10 text-income",
+    "expense": "bg-expense/10 text-expense",
+    "info": "bg-info/10 text-info",
+    "success": "bg-success/10 text-success",
+    "danger": "bg-danger/10 text-danger",
+  } -%}
+  <span class="inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs font-medium {{ tones.get(tone, tones['neutral']) }}">
+    {% if icon %}<i class="fa-solid {{ icon }} text-[10px]" aria-hidden="true"></i>{% endif %}{{ label }}
   </span>
 {%- endmacro %}

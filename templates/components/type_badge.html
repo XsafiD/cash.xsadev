@@ -1,0 +1,13 @@
+{% from "components/badge.html" import status_badge %}
+
+{# Badge domain cash.xsadev: arah dana per tipe transaksi. #}
+
+{% macro type_badge(kind) -%}
+  {%- if kind == "income" -%}
+    {{ status_badge("Pemasukan", tone="income", icon="fa-arrow-down") }}
+  {%- elif kind == "expense" -%}
+    {{ status_badge("Pengeluaran", tone="expense", icon="fa-arrow-up") }}
+  {%- else -%}
+    {{ status_badge("Transfer", tone="info", icon="fa-right-left") }}
+  {%- endif -%}
+{%- endmacro %}
