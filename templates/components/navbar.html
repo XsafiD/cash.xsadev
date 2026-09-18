@@ -5,48 +5,59 @@
   ("category.index", "Kategori", "fa-tags"),
   ("plan.index", "Perencanaan", "fa-calculator"),
 ] %}
-<nav class="sticky top-0 z-20 border-b border-hairline bg-canvas/95 backdrop-blur">
-  <div class="mx-auto flex h-16 max-w-content items-center justify-between px-4">
-    <div class="flex items-center gap-6">
-      <a href="{{ url_for('dashboard.index') }}" class="flex items-center gap-2 font-semibold text-primary">
-        <i class="fa-solid fa-coins" aria-hidden="true"></i>
-        <span class="tracking-tight">CASH XSADEV</span>
-      </a>
-      <div class="hidden gap-1 text-sm md:flex">
-        {% for endpoint, label, icon in nav %}
-          {% set active = request.endpoint == endpoint %}
+
+{# Top bar khusus mobile: logo + tombol burger #}
+<header class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-hairline bg-canvas/95 px-4 backdrop-blur md:hidden">
+  <a href="{{ url_for('dashboard.index') }}" class="flex items-center gap-2 text-lg tracking-tight">
+    <i class="fa-solid fa-coins text-primary" aria-hidden="true"></i>
+    <span><span class="font-bold text-white">cash</span><span class="font-normal text-primary">.xsadev</span></span>
+  </a>
+  <button type="button" data-sidebar-toggle aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false"
+          class="flex h-10 w-10 items-center justify-center rounded-md text-muted-strong transition hover:bg-surface hover:text-ink">
+    <i class="fa-solid fa-bars" aria-hidden="true"></i>
+  </button>
+</header>
+
+<div data-sidebar-backdrop class="fixed inset-0 z-30 hidden bg-black/60 md:hidden"></div>
+
+{# Sidebar tetap (statis) di kiri; drawer pada layar kecil #}
+<aside id="sidebar" data-sidebar
+       class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-hairline bg-canvas transition-transform duration-200 md:translate-x-0">
+  <a href="{{ url_for('dashboard.index') }}"
+     class="flex h-16 shrink-0 items-center gap-2 border-b border-hairline px-5 text-lg tracking-tight">
+    <i class="fa-solid fa-coins text-primary" aria-hidden="true"></i>
+    <span><span class="font-bold text-white">cash</span><span class="font-normal text-primary">.xsadev</span></span>
+  </a>
+
+  <nav class="flex-1 overflow-y-auto p-3 text-sm" aria-label="Navigasi utama">
+    <ul class="space-y-1">
+      {% for endpoint, label, icon in nav %}
+        {% set active = request.endpoint == endpoint %}
+        <li>
           <a href="{{ url_for(endpoint) }}"
-             class="flex items-center gap-2 rounded-md px-3 py-2 transition
-                    {{ 'bg-surface text-primary' if active else 'text-muted-strong hover:bg-surface hover:text-ink' }}">
-            <i class="fa-solid {{ icon }} text-xs" aria-hidden="true"></i>
+             class="flex items-center gap-3 rounded-md px-3 py-2.5 transition
+                    {{ 'bg-surface text-primary' if active else 'text-muted-strong hover:bg-surface hover:text-ink' }}"
+             {{ 'aria-current="page"' if active else '' }}>
+            <i class="fa-solid {{ icon }} w-4 text-center" aria-hidden="true"></i>
             {{ label }}
           </a>
-        {% endfor %}
-      </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </nav>
+
+  <div class="shrink-0 border-t border-hairline p-3 text-sm">
+    <div class="flex items-center gap-3 px-3 py-2 text-muted-strong">
+      <i class="fa-regular fa-circle-user w-4 text-center" aria-hidden="true"></i>
+      <span class="truncate">{{ session.get('nama') }}</span>
     </div>
-    <div class="flex items-center gap-3 text-sm">
-      <span class="hidden items-center gap-2 text-muted-strong sm:flex">
-        <i class="fa-regular fa-circle-user" aria-hidden="true"></i>
-        {{ session.get('nama') }}
-      </span>
-      <form method="POST" action="{{ url_for('auth.logout') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit"
-                class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-muted-strong transition hover:bg-surface hover:text-expense">
-          <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
-          <span class="hidden sm:inline">Keluar</span>
-        </button>
-      </form>
-    </div>
+    <form method="POST" action="{{ url_for('auth.logout') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit"
+              class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-muted-strong transition hover:bg-surface hover:text-expense">
+        <i class="fa-solid fa-arrow-right-from-bracket w-4 text-center" aria-hidden="true"></i>
+        Keluar
+      </button>
+    </form>
   </div>
-  <div class="flex gap-1 overflow-x-auto px-4 pb-2 text-sm md:hidden">
-    {% for endpoint, label, icon in nav %}
-      <a href="{{ url_for(endpoint) }}"
-         class="flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5
-                {{ 'bg-surface text-primary' if request.endpoint == endpoint else 'text-muted-strong hover:text-ink' }}">
-        <i class="fa-solid {{ icon }} text-xs" aria-hidden="true"></i>
-        {{ label }}
-      </a>
-    {% endfor %}
-  </div>
-</nav>
+</aside>

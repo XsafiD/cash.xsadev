@@ -327,8 +327,40 @@
     });
   }
 
+  // ── Sidebar kiri: drawer pada layar kecil, statis pada layar besar ──
+  function initSidebar() {
+    const sidebar = document.querySelector("[data-sidebar]");
+    const toggle = document.querySelector("[data-sidebar-toggle]");
+    const backdrop = document.querySelector("[data-sidebar-backdrop]");
+    if (!sidebar || !toggle || !backdrop) return;
+
+    function open() {
+      sidebar.classList.remove("-translate-x-full");
+      backdrop.classList.remove("hidden");
+      toggle.setAttribute("aria-expanded", "true");
+    }
+
+    function close() {
+      sidebar.classList.add("-translate-x-full");
+      backdrop.classList.add("hidden");
+      toggle.setAttribute("aria-expanded", "false");
+    }
+
+    toggle.addEventListener("click", function () {
+      if (sidebar.classList.contains("-translate-x-full")) open();
+      else close();
+    });
+
+    backdrop.addEventListener("click", close);
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") close();
+    });
+  }
+
   function init() {
     document.querySelectorAll("[data-alert]").forEach(initAlert);
+    initSidebar();
     document.querySelectorAll("input[data-money]").forEach(initMoneyInput);
     initSegmented();
     initTypeFields();
