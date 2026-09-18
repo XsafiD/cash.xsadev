@@ -27,11 +27,11 @@ kalkulator terpisah). Rencana lengkap: `docs/2026-09-17 - rencana-cash-xsadev.md
 
 ## UI Kit (WAJIB)
 
-UI kit lintas stack: `docs/xsadev-ui/` (git submodule → `XsafiD/xsadev-kit`, pin `v1.0.0`).
+UI kit lintas stack: `docs/xsadev-kit/` (git submodule → `XsafiD/xsadev-kit`, pin `v1.0.1`).
 
-- `docs/xsadev-ui/core/` — stack-agnostic: `TOKENS.md`, `themes/`, `css/`, `js/`, `patterns/`.
-- `docs/xsadev-ui/guides/` — panduan generik: design token, layout app shell, form controls.
-- `docs/xsadev-ui/adapters/flask/` — **referensi hidup** komponen Jinja + shell yang dipakai app ini.
+- `docs/xsadev-kit/core/` — stack-agnostic: `TOKENS.md`, `themes/`, `css/`, `js/`, `patterns/`.
+- `docs/xsadev-kit/guides/` — panduan generik: design token, layout app shell, form controls.
+- `docs/xsadev-kit/adapters/flask/` — **referensi hidup** komponen Jinja + shell yang dipakai app ini.
 
 Aturan: jangan menyalin/mengubah komponen kit secara ad-hoc di project ini —
 selaraskan lewat `adapters/flask/`. Komponen domain khusus project (mis.

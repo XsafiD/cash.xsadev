@@ -1,6 +1,6 @@
 [submodule "docs/coding-standards"]
 	path = docs/coding-standards
 	url = git@github.com:XsafiD/flask-coding-standards.git
-[submodule "docs/xsadev-ui"]
-	path = docs/xsadev-ui
+[submodule "docs/xsadev-kit"]
+	path = docs/xsadev-kit
 	url = git@github.com:XsafiD/xsadev-kit.git
