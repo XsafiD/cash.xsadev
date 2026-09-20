@@ -1,10 +1,33 @@
 """app.py — Application factory + error handler + CLI."""
+import importlib
 import os
 
 import click
 from flask import Flask, jsonify, render_template, request
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config import Config
+
+
+def _resolve_config_class(config_class):
+    """Pilih config: argumen eksplisit > env FLASK_CONFIG > Config (dev).
+
+    FLASK_CONFIG berupa dotted path, mis. ``config.ProductionConfig``.
+    """
+    if config_class is not None:
+        return config_class
+
+    dotted = os.environ.get("FLASK_CONFIG")
+    if not dotted:
+        return Config
+
+    module_path, _, attr = dotted.rpartition(".")
+    if not module_path:
+        raise RuntimeError(
+            f"FLASK_CONFIG tidak valid: '{dotted}' (harus 'modul.KelaS')."
+        )
+    module = importlib.import_module(module_path)
+    return getattr(module, attr)
 
 
 def _wants_json() -> bool:
@@ -68,6 +91,17 @@ def _register_template_filters(app: Flask) -> None:
         return "Rp {:,.0f}".format(amount).replace(",", ".")
 
 
+def _register_health(app: Flask) -> None:
+    @app.route("/health")
+    def health_check():
+        """Verifikasi server berjalan (Docker healthcheck / monitoring).
+
+        Public, cepat, tanpa query DB. Lihat rule 10-api-response.
+        """
+        return jsonify(status="ok", app="cash-xsadev",
+                       version=app.config.get("APP_VERSION", "1.0.0"))
+
+
 def _register_cli(app: Flask) -> None:
     @app.cli.command("seed-owner")
     def seed_owner():
@@ -80,15 +114,23 @@ def _register_cli(app: Flask) -> None:
         click.echo(f"Owner '{user.username}' siap dipakai.")
 
 
-def create_app(config_class=Config) -> Flask:
+def create_app(config_class=None) -> Flask:
     app = Flask(__name__)
-    app.config.from_object(config_class)
+    app.config.from_object(_resolve_config_class(config_class))
 
     if not app.config.get("SECRET_KEY"):
         raise RuntimeError(
             "SECRET_KEY wajib di-set untuk environment ini "
             "(lihat .env.example)."
         )
+    if not app.config.get("SQLALCHEMY_DATABASE_URI"):
+        raise RuntimeError(
+            "DATABASE_URL wajib di-set untuk environment ini "
+            "(lihat .env.production.example)."
+        )
+
+    if app.config.get("TRUST_PROXY"):
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     from flask_migrate import Migrate
     from flask_wtf.csrf import CSRFProtect
@@ -104,5 +146,6 @@ def create_app(config_class=Config) -> Flask:
 
     _register_error_handlers(app)
     _register_template_filters(app)
+    _register_health(app)
     _register_cli(app)
     return app

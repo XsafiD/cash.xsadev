@@ -4,8 +4,9 @@ Aplikasi pencatatan keuangan self-hosted: **satu aplikasi, semua catatan
 keuangan.** Menggabungkan catatan uang masuk/keluar, transfer antar akun, dan
 kalkulator perencanaan kebutuhan bulanan dalam satu tempat.
 
-> **Status: local development — belum production.** MySQL berjalan lewat Docker,
-> Flask memakai dev server, dan Tailwind dimuat via CDN.
+> **Status: development aktif + stack production tersedia.** Dev: MySQL via
+> Docker, Flask dev server, Tailwind via CDN. Production: `docker-compose.prod.yml`
+> (Flask + gunicorn, non-root) — reverse proxy/TLS diurus step terpisah.
 
 ## Fitur
 
@@ -31,6 +32,7 @@ kalkulator perencanaan kebutuhan bulanan dalam satu tempat.
 | ORM      | Flask-SQLAlchemy                   |
 | Database | MySQL 8 (Docker)                   |
 | Migrasi  | Flask-Migrate (Alembic)            |
+| Server   | gunicorn (production)              |
 | UI       | Tailwind CSS (CDN) + dark mode     |
 
 ## Struktur
@@ -44,6 +46,9 @@ services/         business logic + aturan saldo (ACID)
 controllers/      Blueprint per domain + decorator auth
 templates/        Jinja2 (base.html, components/, per domain)
 migrations/       migrasi Alembic
+Dockerfile        image production (gunicorn, non-root)
+docker-compose.yml         MySQL untuk dev
+docker-compose.prod.yml    stack production (app + mysql)
 docs/             rencana + coding-standards (submodule)
 ```
 
@@ -96,7 +101,69 @@ make migrate-init                      # setup folder migrations (sekali saja)
 make seed-owner                        # akun owner awal
 make mysql-up / mysql-down / mysql-ps
 make mysql-shell / mysql-logs
+
+# production (docker-compose.prod.yml)
+make prod-build                        # build image production
+make prod-up / prod-down / prod-ps     # start / stop / status stack
+make prod-logs                         # log app production
+make prod-migrate                      # apply migrasi di production (sekali)
+make prod-seed                         # buat owner awal di production (sekali)
 ```
+
+## Deployment Production (Docker)
+
+Stack production: **dua container — `app` (Flask + gunicorn, non-root) dan
+`mysql` 8** — via `docker-compose.prod.yml`. App dipublik ke port host **8000**
+(`http://<host>:8000`). MySQL **tidak** dipublik ke host (hanya di network
+internal compose). Reverse proxy/TLS (nginx dsb.) bukan bagian compose ini —
+ditambahkan terpisah di depannya bila diperlukan.
+
+### 1. Siapkan file environment (sekali)
+
+```bash
+cp .env.production.example .env.production
+cp .env.mysql.production.example .env.mysql.production
+```
+
+Isi nilai nyata di keduanya:
+
+- `SECRET_KEY` — generate: `python -c "import secrets; print(secrets.token_hex(32))"`
+- `DATABASE_URL` di `.env.production` — password-nya **wajib sama** dengan
+  `MYSQL_PASSWORD` di `.env.mysql.production`.
+- `OWNER_USERNAME` / `OWNER_PASSWORD` — akun owner awal.
+- Akses mode: tanpa proxy/TLS set `TRUST_PROXY=0` dan `SESSION_COOKIE_SECURE=0`.
+  Saat sudah di belakang proxy + HTTPS, ubah keduanya ke `1`.
+
+> `.env.production` dan `.env.mysql.production` **gitignored** — jangan di-commit.
+> Volume production terpisah dari dev (`cashxsadev_mysql_data_prod` vs `_dev`).
+
+### 2. Build & jalankan
+
+```bash
+make prod-build
+make prod-up
+make prod-ps      # pastikan app & mysql "healthy"
+```
+
+### 3. Migrasi & owner (sekali, setelah container sehat)
+
+```bash
+make prod-migrate
+make prod-seed
+```
+
+### 4. Akses & operasional
+
+```bash
+# cek kesehatan
+curl http://localhost:8000/health
+
+make prod-logs    # ikuti log app
+make prod-down    # hentikan stack (data di volume tetap aman)
+```
+
+Setelah `prod-migrate` + `prod-seed`, login di `http://<host>:8000` dengan
+`OWNER_USERNAME` / `OWNER_PASSWORD`.
 
 ## Alur Migrasi
 
@@ -126,8 +193,11 @@ Semua dibungkus satu commit; gagal di tengah → rollback, tidak ada partial wri
 Sudah: fondasi, buku catatan, dashboard, halaman Perencanaan, migrasi Alembic,
 tema gelap.
 
+Stack production Docker (gunicorn + compose) sudah tersedia — lihat
+[Deployment Production](#deployment-production-docker).
+
 Berikutnya: **laporan + export CSV**, edit transaksi, pagination, rekonsiliasi
 saldo + alert, multi-user/admin, budget alert, utang–piutang, import CSV, lalu
-hardening production (gunicorn, secure headers, rate limit, Tailwind compile).
+hardening lanjutan (secure headers, rate limit login, Tailwind compile).
 
 Rencana lengkap & keputusan desain: `docs/2026-09-17 - rencana-cash-xsadev.md`.

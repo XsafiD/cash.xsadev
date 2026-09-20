@@ -1,6 +1,8 @@
 venv/
 opencode.json
 .env
+.env.production
+.env.mysql.production
 __pycache__/
 *.py[cod]
 instance/

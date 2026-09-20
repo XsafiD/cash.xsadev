@@ -1,0 +1,26 @@
+# VCS & tooling lokal
+.git/
+.gitmodules
+.dockerignore
+Dockerfile
+docker-compose*.yml
+opencode.json
+*.md
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.pytest_cache/
+
+# Secrets & state lokal — JANGAN masuk image
+.env*
+instance/
+*.db
+
+# Dev-only CLI env (memuat FLASK_DEBUG=1)
+.flaskenv
+
+# Dokumentasi submodule (referensi, bukan runtime)
+docs/

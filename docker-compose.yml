@@ -10,7 +10,7 @@ services:
       - MYSQL_USER=cashxsadev
       - MYSQL_PASSWORD=secret
     volumes:
-      - cashxsadev_mysql_data:/var/lib/mysql
+      - cashxsadev_mysql_data_dev:/var/lib/mysql
     ports:
       - "3307:3306"
     healthcheck:
@@ -30,4 +30,4 @@ services:
       retries: 10
 
 volumes:
-  cashxsadev_mysql_data:
+  cashxsadev_mysql_data_dev:

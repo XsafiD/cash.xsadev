@@ -1,0 +1,74 @@
+# docker-compose.prod.yml — stack production minimal: app (gunicorn) + MySQL.
+#
+# Fokus: cukup jalan lewat Docker dan bisa diakses. Reverse proxy / TLS (nginx)
+# diurus di step terpisah — compose ini tidak memuatnya.
+#
+# Pakai:
+#   cp .env.production.example .env.production
+#   cp .env.mysql.production.example .env.mysql.production
+#   # isi nilai nyata di kedua file, lalu:
+#   docker compose -f docker-compose.prod.yml build
+#   docker compose -f docker-compose.prod.yml up -d
+#   # akses: http://<host>:8000  (ubah port host di baris ports bila perlu)
+#
+# Migrasi & seed (sekali, manual — tidak di CMD):
+#   docker compose -f docker-compose.prod.yml run --rm app flask db upgrade
+#   docker compose -f docker-compose.prod.yml run --rm app flask seed-owner
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: cashxsadev-mysql-prod
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    env_file: .env.mysql.production
+    volumes:
+      - cashxsadev_mysql_data_prod:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - backend
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cashxsadev-app:latest
+    container_name: cashxsadev-app-prod
+    env_file: .env.production
+    environment:
+      FLASK_CONFIG: config.ProductionConfig
+      FLASK_DEBUG: "0"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8000:5000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request;urllib.request.urlopen('http://localhost:5000/health', timeout=3)\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - backend
+
+volumes:
+  cashxsadev_mysql_data_prod:
+
+networks:
+  backend:

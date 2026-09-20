@@ -6,3 +6,4 @@ WTForms==3.2.1
 PyMySQL==1.1.1
 python-dotenv==1.1.0
 cryptography==44.0.0
+gunicorn==23.0.0

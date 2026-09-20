@@ -31,6 +31,11 @@ class Config:
     WTF_CSRF_TIME_LIMIT = 3600
 
     APP_TZ = os.environ.get("APP_TZ", "Asia/Jakarta")
+    APP_VERSION = os.environ.get("APP_VERSION", "1.0.0")
+
+    # Aktifkan hanya bila app berada di belakang reverse proxy tepercaya (nginx).
+    # Mencegah spoofing X-Forwarded-* saat app diekspos langsung.
+    TRUST_PROXY = os.environ.get("TRUST_PROXY", "0") == "1"
 
 
 class TestConfig(Config):
@@ -45,4 +50,7 @@ class ProductionConfig(Config):
     # Fail-fast: production tanpa fallback diam-diam.
     # Sengaja None (bukan KeyError saat import) — `create_app` yang menolak jalan.
     SECRET_KEY = os.environ.get("SECRET_KEY")
-    SESSION_COOKIE_SECURE = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
+    # Default aman: HTTPS-only. Set SESSION_COOKIE_SECURE=0 bila diakses
+    # HTTP polos tanpa reverse proxy/TLS (mis. akses lokal langsung ke port app).
+    SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "1") == "1"
