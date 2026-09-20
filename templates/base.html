@@ -41,6 +41,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="bg-canvas font-sans text-ink min-h-screen antialiased">
+  {# Blok `body` bisa di-override halaman auth (exception shell). Lihat guides/auth-page.md. #}
+  {% block body %}
   {% set authed = session.get('user_id') %}
   {% if authed %}
     {% include "components/sidebar.html" %}
@@ -63,6 +65,7 @@
       {% block content %}{% endblock %}
     </main>
   </div>
+  {% endblock %}
 
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>

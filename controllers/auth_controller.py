@@ -22,10 +22,12 @@ class LoginForm(FlaskForm):
             DataRequired(message="Username wajib diisi"),
             Length(min=3, max=50, message="Username 3-50 karakter"),
         ],
+        render_kw={"autocomplete": "username", "autofocus": True},
     )
     password = PasswordField(
         "Password",
         validators=[DataRequired(message="Password wajib diisi")],
+        render_kw={"autocomplete": "current-password"},
     )
 
 

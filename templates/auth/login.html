@@ -1,19 +1,27 @@
 {% extends "base.html" %}
-{% from "components/form.html" import render_field, submit %}
+{% from "components/auth.html" import auth_card, auth_icon_field %}
+{% from "components/form.html" import submit %}
 {% block title %}Masuk · cash.xsadev{% endblock %}
-{% block content %}
-<div class="mx-auto mt-16 max-w-sm rounded-2xl border border-hairline bg-surface p-8">
-  <div class="mb-6 flex items-center gap-2 text-lg tracking-tight">
-    <i class="fa-solid fa-coins text-xl text-primary" aria-hidden="true"></i>
-    <span><span class="font-bold text-primary">cash</span><span class="font-normal text-white">.xsadev</span></span>
-  </div>
-  <h1 class="text-xl font-semibold text-ink">Masuk</h1>
-  <p class="mb-6 mt-1 text-sm text-muted-strong">Masuk untuk mengelola keuanganmu.</p>
-  <form method="POST" novalidate>
+{% block body %}
+{% call auth_card("cash", ".xsadev", tagline="Catat & rencanakan keuanganmu", icon="fa-coins", copyright="© 2026 cash.xsadev") %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div role="alert"
+           class="mb-4 flex items-start rounded-md border-l-4 p-4 text-sm
+                  {{ 'border-danger bg-danger/10 text-danger' if category == 'error'
+                     else 'border-success bg-success/10 text-success' }}">
+        <i class="fa-solid {{ 'fa-circle-exclamation' if category == 'error' else 'fa-circle-check' }} mr-2 mt-0.5"
+           aria-hidden="true"></i>
+        <span class="flex-1">{{ message }}</span>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="POST" novalidate class="space-y-5">
     {{ form.hidden_tag() }}
-    {{ render_field(form.username, placeholder="owner") }}
-    {{ render_field(form.password, placeholder="••••••••") }}
+    {{ auth_icon_field(form.username, "fa-user", placeholder="owner") }}
+    {{ auth_icon_field(form.password, "fa-lock", placeholder="••••••••") }}
     {{ submit("Masuk", icon="fa-right-to-bracket", full=true) }}
   </form>
-</div>
+{% endcall %}
 {% endblock %}

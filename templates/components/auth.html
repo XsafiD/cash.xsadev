@@ -1,0 +1,45 @@
+{% macro auth_card(brand_name, brand_suffix, tagline="", icon="fa-cube", copyright=None) -%}
+{#- Kunci brand di luar card, card hanya berisi form. Lihat core/patterns/auth-card.md.
+    caller() mengisi card (form); `copyright` tampil di bawah card. -#}
+<div class="min-h-screen flex flex-col items-center justify-center bg-canvas p-4">
+
+  <div class="text-center mb-6">
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+      <i class="fa-solid {{ icon }} text-primary text-2xl" aria-hidden="true"></i>
+    </div>
+    <h1 class="text-3xl font-bold tracking-wide">
+      <span class="font-bold text-primary">{{ brand_name }}</span><span class="font-normal text-on-canvas">{{ brand_suffix }}</span>
+    </h1>
+    {% if tagline %}<p class="text-muted-strong text-sm mt-1">{{ tagline }}</p>{% endif %}
+  </div>
+
+  <div class="bg-surface w-full max-w-md rounded-xl shadow-xl border border-hairline p-6 sm:p-8">
+    {{ caller() }}
+  </div>
+
+  {% if copyright %}
+  <p class="mt-6 text-xs text-muted">{{ copyright }}</p>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+
+{% macro auth_icon_field(field, icon, placeholder="") -%}
+  {%- set state = "border-danger focus:border-danger focus:ring-danger"
+                  if field.errors else
+                  "border-hairline focus:border-primary focus:ring-primary" -%}
+<div>
+  {{ field.label(class="mb-1.5 block text-sm font-medium text-muted-strong") }}
+  <div class="relative">
+    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+      <i class="fa-solid {{ icon }} text-muted" aria-hidden="true"></i>
+    </div>
+    {{ field(class="pl-10 w-full rounded-md border bg-canvas py-2.5 pr-3 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-1 " ~ state, placeholder=placeholder) }}
+  </div>
+  {% for error in field.errors %}
+  <p class="mt-1 flex items-center gap-1.5 text-xs text-danger">
+    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>{{ error }}
+  </p>
+  {% endfor %}
+</div>
+{%- endmacro %}
