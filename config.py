@@ -33,6 +33,11 @@ class Config:
     APP_TZ = os.environ.get("APP_TZ", "Asia/Jakarta")
     APP_VERSION = os.environ.get("APP_VERSION", "1.0.0")
 
+    # Mode setup awal (/auth/setup). Dev: aktif, token opsional.
+    # Production: WAJIB set SETUP_TOKEN, kalau tidak → setup auto-disabled.
+    SETUP_ENABLED = os.environ.get("SETUP_ENABLED", "1") == "1"
+    SETUP_TOKEN = os.environ.get("SETUP_TOKEN", "")
+
     # Aktifkan hanya bila app berada di belakang reverse proxy tepercaya (nginx).
     # Mencegah spoofing X-Forwarded-* saat app diekspos langsung.
     TRUST_PROXY = os.environ.get("TRUST_PROXY", "0") == "1"
@@ -54,3 +59,8 @@ class ProductionConfig(Config):
     # Default aman: HTTPS-only. Set SESSION_COOKIE_SECURE=0 bila diakses
     # HTTP polos tanpa reverse proxy/TLS (mis. akses lokal langsung ke port app).
     SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "1") == "1"
+
+    # Setup hanya boleh jalan bila token eksplisit di-set. Tanpa token →
+    # route /auth/setup 404 dan lockdown tidak aktif (perilaku prod lama).
+    SETUP_TOKEN = os.environ.get("SETUP_TOKEN") or ""
+    SETUP_ENABLED = bool(SETUP_TOKEN)

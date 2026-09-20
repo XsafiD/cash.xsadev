@@ -18,6 +18,7 @@ def utcnow() -> datetime:
 
 
 # Import di bawah agar semua tabel ter-register saat `models` di-load.
+from models.app_setting import AppSetting  # noqa: E402,F401
 from models.user import User  # noqa: E402,F401
 from models.account import Account  # noqa: E402,F401
 from models.category import Category  # noqa: E402,F401
@@ -29,6 +30,7 @@ __all__ = [
     "db",
     "generate_uuid",
     "utcnow",
+    "AppSetting",
     "User",
     "Account",
     "Category",

@@ -3,7 +3,7 @@ import importlib
 import os
 
 import click
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config import Config
@@ -102,6 +102,40 @@ def _register_health(app: Flask) -> None:
                        version=app.config.get("APP_VERSION", "1.0.0"))
 
 
+# Cache module-level: `is_initialized` cukup dicek sekali per proses. Begitu
+# True, tidak pernah kembali False (marker setup permanen).
+_setup_state = {"initialized": False}
+
+_SETUP_ALLOWED_PATHS = frozenset({
+    "/health",
+    "/favicon.ico",
+    "/auth/setup",
+})
+
+
+def _register_setup_guard(app: Flask) -> None:
+    """Lockdown: selama belum di-setup, SEMUA halaman → /auth/setup.
+
+    Termasuk /auth/login & /auth/logout — selama belum ada owner, login tidak
+    berguna, jadi semua jalan mengarah ke setup. Hanya aktif saat mode setup
+    enabled (production tanpa SETUP_TOKEN → off, perilaku lama).
+    """
+    from services.auth_service import AuthService
+
+    @app.before_request
+    def _enforce_setup():
+        if not app.config.get("SETUP_ENABLED"):
+            return None
+        if request.path.startswith("/static/") or request.path in _SETUP_ALLOWED_PATHS:
+            return None
+        if _setup_state["initialized"]:
+            return None
+        if AuthService().is_initialized():
+            _setup_state["initialized"] = True
+            return None
+        return redirect(url_for("auth.setup"))
+
+
 def _register_cli(app: Flask) -> None:
     @app.cli.command("seed-owner")
     def seed_owner():
@@ -147,5 +181,6 @@ def create_app(config_class=None) -> Flask:
     _register_error_handlers(app)
     _register_template_filters(app)
     _register_health(app)
+    _register_setup_guard(app)
     _register_cli(app)
     return app
