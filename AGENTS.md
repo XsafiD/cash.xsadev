@@ -27,7 +27,7 @@ kalkulator terpisah). Rencana lengkap: `docs/2026-09-17 - rencana-cash-xsadev.md
 
 ## UI Kit (WAJIB)
 
-UI kit lintas stack: `docs/xsadev-kit/` (git submodule → `XsafiD/xsadev-kit`, pin `v1.0.3`).
+UI kit lintas stack: `docs/xsadev-kit/` (git submodule → `XsafiD/xsadev-kit`, pin `v1.1.0`).
 
 - `docs/xsadev-kit/core/` — stack-agnostic: `TOKENS.md`, `themes/`, `css/`, `js/`, `patterns/`.
 - `docs/xsadev-kit/guides/` — panduan generik: design token, layout app shell, form controls.
