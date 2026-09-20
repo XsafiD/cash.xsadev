@@ -11,8 +11,9 @@
 #   docker compose -f docker-compose.prod.yml up -d
 #   # akses: http://<host>:8000  (ubah port host di baris ports bila perlu)
 #
-# Migrasi & seed (sekali, manual — tidak di CMD):
-#   docker compose -f docker-compose.prod.yml run --rm app flask db upgrade
+# Migrasi DB otomatis dijalankan entrypoint saat container start (sebelum
+# gunicorn). Set AUTO_MIGRATE=0 untuk melewatinya. Owner pertama dibuat lewat
+# /auth/setup (aktif bila SETUP_TOKEN diisi), atau manual:
 #   docker compose -f docker-compose.prod.yml run --rm app flask seed-owner
 services:
   mysql:

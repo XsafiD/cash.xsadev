@@ -17,13 +17,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 RUN addgroup --system app && adduser --system --ingroup app app \
-    && chown -R app:app /app
+    && chown -R app:app /app \
+    && chmod +x /app/docker-entrypoint.sh
 USER app
 
 EXPOSE 5000
 
-# Migrasi TIDAK di CMD — jalankan sekali secara manual (lihat README/Makefile):
-#   docker compose -f docker-compose.prod.yml run --rm app flask db upgrade
+# Entrypoint menjalankan `flask db upgrade` lebih dulu, lalu CMD di bawah.
+# Migrasi tidak bisa di build (tanpa akses DB) — jadi dijalankan saat start.
+# Set AUTO_MIGRATE=0 untuk melewatinya (mis. multi-replica).
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", \
      "--workers", "4", \
      "--timeout", "120", \

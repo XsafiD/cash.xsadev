@@ -53,8 +53,8 @@ prod-ps: ## Show production container status
 prod-logs: ## View production app logs
 	docker compose -f docker-compose.prod.yml logs -f app
 
-prod-migrate: ## Apply migrations di production (sekali, manual)
-	docker compose -f docker-compose.prod.yml run --rm app flask db upgrade
+prod-migrate: ## Apply migrasi di production manual (opsional — otomatis saat start)
+	docker compose -f docker-compose.prod.yml run --rm -e AUTO_MIGRATE=0 app flask db upgrade
 
-prod-seed: ## Buat owner awal di production (sekali, manual)
+prod-seed: ## Buat owner awal manual (opsional — atau lewat /auth/setup)
 	docker compose -f docker-compose.prod.yml run --rm app flask seed-owner

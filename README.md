@@ -71,7 +71,7 @@ venv/bin/pip install -r requirements.txt
 cp .env.example .env
 #    - generate SECRET_KEY:
 #      venv/bin/python -c "import secrets; print(secrets.token_hex(32))"
-#    - ganti OWNER_USERNAME / OWNER_PASSWORD
+#    - SETUP_TOKEN boleh dikosongkan di dev (setup aktif tanpa token)
 
 # 3. Nyalakan MySQL
 make mysql-up
@@ -79,15 +79,14 @@ make mysql-up
 # 4. Apply migrasi
 make migrate-up
 
-# 5. Buat akun owner awal
-make seed-owner
-
-# 6. Jalankan dev server (http://127.0.0.1:5000)
+# 5. Jalankan dev server (http://127.0.0.1:5000)
 make dev
 ```
 
-Login dengan `OWNER_USERNAME` / `OWNER_PASSWORD` dari `.env`
-(default: `owner` / `gantipassword` — **wajib diganti**).
+Buka `http://127.0.0.1:5000` — karena belum ada user, otomatis diarahkan ke
+`/auth/setup` untuk membuat akun owner pertama (sekali pakai). Setelah itu login
+normal. Alternatif via CLI: `make seed-owner`
+(`OWNER_USERNAME` / `OWNER_PASSWORD` di `.env`).
 
 ## Perintah (Makefile)
 
@@ -106,8 +105,8 @@ make mysql-shell / mysql-logs
 make prod-build                        # build image production
 make prod-up / prod-down / prod-ps     # start / stop / status stack
 make prod-logs                         # log app production
-make prod-migrate                      # apply migrasi di production (sekali)
-make prod-seed                         # buat owner awal di production (sekali)
+make prod-migrate                      # migrasi manual (opsional; otomatis saat start)
+make prod-seed                         # owner manual (opsional; atau lewat /auth/setup)
 ```
 
 ## Deployment Production (Docker)
@@ -130,40 +129,44 @@ Isi nilai nyata di keduanya:
 - `SECRET_KEY` — generate: `python -c "import secrets; print(secrets.token_hex(32))"`
 - `DATABASE_URL` di `.env.production` — password-nya **wajib sama** dengan
   `MYSQL_PASSWORD` di `.env.mysql.production`.
-- `OWNER_USERNAME` / `OWNER_PASSWORD` — akun owner awal.
+- `SETUP_TOKEN` — token acak untuk mengaktifkan `/auth/setup` (buat owner
+  pertama lewat browser). Kosongkan bila ingin owner dibuat manual (`make prod-seed`).
 - Akses mode: tanpa proxy/TLS set `TRUST_PROXY=0` dan `SESSION_COOKIE_SECURE=0`.
   Saat sudah di belakang proxy + HTTPS, ubah keduanya ke `1`.
 
 > `.env.production` dan `.env.mysql.production` **gitignored** — jangan di-commit.
 > Volume production terpisah dari dev (`cashxsadev_mysql_data_prod` vs `_dev`).
 
-### 2. Build & jalankan
+### 2. Build & jalankan (migrasi otomatis)
 
 ```bash
-make prod-build
-make prod-up
-make prod-ps      # pastikan app & mysql "healthy"
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml ps   # pastikan app & mysql "healthy"
 ```
 
-### 3. Migrasi & owner (sekali, setelah container sehat)
+Saat container `app` start, entrypoint menjalankan `flask db upgrade` sebelum
+gunicorn melayani — **tidak ada langkah `migrate up` manual**. Idempoten, aman
+tiap restart. (Set `AUTO_MIGRATE=0` untuk melewatinya, mis. saat scale >1 replica.)
+
+### 3. Buat owner pertama (sekali)
+
+Buka `http://<host>:8000` → otomatis diarahkan ke `/auth/setup` → isi token,
+username, dan password. Halaman ini tertutup permanen setelah owner dibuat,
+lalu login seperti biasa.
+
+Alternatif manual bila `SETUP_TOKEN` kosong (setup nonaktif):
 
 ```bash
-make prod-migrate
-make prod-seed
+docker compose -f docker-compose.prod.yml run --rm app flask seed-owner
 ```
 
 ### 4. Akses & operasional
 
 ```bash
-# cek kesehatan
-curl http://localhost:8000/health
-
-make prod-logs    # ikuti log app
-make prod-down    # hentikan stack (data di volume tetap aman)
+curl http://localhost:8000/health   # cek kesehatan
+make prod-logs                     # ikuti log app production
+make prod-down                     # hentikan stack (data di volume tetap aman)
 ```
-
-Setelah `prod-migrate` + `prod-seed`, login di `http://<host>:8000` dengan
-`OWNER_USERNAME` / `OWNER_PASSWORD`.
 
 ## Alur Migrasi
 
